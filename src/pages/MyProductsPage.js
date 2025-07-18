@@ -92,6 +92,7 @@ const MyProductsPage = () => {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.current, pagination.pageSize, statusFilter]);
 
   // 更新统计数据
@@ -109,8 +110,11 @@ const MyProductsPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       loadMyProducts();
+    } else {
+      // 未登录重定向到登录页面
+      navigate('/auth/login');
     }
-  }, [isAuthenticated, loadMyProducts]);
+  }, [isAuthenticated, loadMyProducts, navigate]);
 
   // 处理分页
   const handlePageChange = (page, pageSize) => {
@@ -215,15 +219,15 @@ const MyProductsPage = () => {
     },
     {
       title: '浏览量',
-      dataIndex: 'viewCount',
-      key: 'viewCount',
+      dataIndex: 'views',
+      key: 'views',
       width: '10%',
       render: (count) => <Text type="secondary">{count}</Text>
     },
     {
       title: '发布时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: '12%',
       render: (time) => (
         <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -242,7 +246,7 @@ const MyProductsPage = () => {
               size="small"
               type="link"
               icon={<EyeOutlined />}
-              onClick={() => handleViewProduct(record.productId)}
+              onClick={() => handleViewProduct(record.id)}
             >
               查看
             </Button>
@@ -252,7 +256,7 @@ const MyProductsPage = () => {
                 size="small"
                 type="link"
                 icon={<EditOutlined />}
-                onClick={() => handleEditProduct(record.productId)}
+                onClick={() => handleEditProduct(record.id)}
               >
                 编辑
               </Button>
@@ -265,7 +269,7 @@ const MyProductsPage = () => {
                 size="small"
                 type="link"
                 icon={<DownOutlined />}
-                onClick={() => handleToggleStatus(record.productId, record.status)}
+                onClick={() => handleToggleStatus(record.id, record.status)}
               >
                 下架
               </Button>
@@ -276,7 +280,7 @@ const MyProductsPage = () => {
                 size="small"
                 type="link"
                 icon={<UpOutlined />}
-                onClick={() => handleToggleStatus(record.productId, record.status)}
+                onClick={() => handleToggleStatus(record.id, record.status)}
               >
                 上架
               </Button>
@@ -285,7 +289,7 @@ const MyProductsPage = () => {
             {record.status !== PRODUCT_STATUS.SOLD && (
               <Popconfirm
                 title="确定删除这个商品吗？"
-                onConfirm={() => handleDeleteProduct(record.productId)}
+                onConfirm={() => handleDeleteProduct(record.id)}
                 okText="确定"
                 cancelText="取消"
               >
@@ -305,9 +309,8 @@ const MyProductsPage = () => {
     }
   ];
 
-  // 未登录重定向
+  // 未登录时显示加载状态，避免在render中导航
   if (!isAuthenticated) {
-    navigate('/auth/login');
     return null;
   }
 
@@ -368,7 +371,7 @@ const MyProductsPage = () => {
         <Table
           columns={columns}
           dataSource={products}
-          rowKey="productId"
+          rowKey="id"
           loading={loading}
           pagination={{
             current: pagination.current,

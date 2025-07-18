@@ -72,6 +72,30 @@ export const productService = {
 
   // 发布商品
   createProduct: async (productData) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(500);
+      
+      // 模拟创建商品
+      const newProduct = {
+        id: Date.now(), // 简单的ID生成
+        ...productData,
+        status: PRODUCT_STATUS.AVAILABLE,
+        views: 0,
+        likes: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // 将商品添加到当前用户的商品列表中（模拟持久化）
+      const currentUserId = 1;
+      if (!mockUserProducts[currentUserId]) {
+        mockUserProducts[currentUserId] = [];
+      }
+      mockUserProducts[currentUserId].unshift(newProduct);
+      
+      return { product: newProduct };
+    }
+    
     try {
       const response = await apiClient.post('/products', productData);
       return response.data;
@@ -82,6 +106,26 @@ export const productService = {
 
   // 更新商品
   updateProduct: async (productId, productData) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+      
+      // 在Mock数据中更新商品
+      const currentUserId = 1;
+      const userProducts = mockUserProducts[currentUserId] || [];
+      const productIndex = userProducts.findIndex(p => p.id === parseInt(productId));
+      
+      if (productIndex !== -1) {
+        mockUserProducts[currentUserId][productIndex] = {
+          ...userProducts[productIndex],
+          ...productData,
+          updatedAt: new Date().toISOString()
+        };
+        return { product: mockUserProducts[currentUserId][productIndex] };
+      } else {
+        throw new Error('商品不存在');
+      }
+    }
+    
     try {
       const response = await apiClient.put(`/products/${productId}`, productData);
       return response.data;
@@ -92,6 +136,22 @@ export const productService = {
 
   // 删除商品
   deleteProduct: async (productId) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+      
+      // 在Mock数据中删除商品
+      const currentUserId = 1;
+      const userProducts = mockUserProducts[currentUserId] || [];
+      const productIndex = userProducts.findIndex(p => p.id === parseInt(productId));
+      
+      if (productIndex !== -1) {
+        mockUserProducts[currentUserId].splice(productIndex, 1);
+        return { success: true };
+      } else {
+        throw new Error('商品不存在');
+      }
+    }
+    
     try {
       const response = await apiClient.delete(`/products/${productId}`);
       return response.data;
@@ -102,8 +162,22 @@ export const productService = {
 
   // 获取商品分类列表
   getCategories: async () => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+      
+      // 🚨 MOCK CATEGORIES - 严格按照PRODUCT_CATEGORY枚举
+      return [
+        { id: 1, name: '电子产品', icon: '📱' },
+        { id: 2, name: '图书文具', icon: '📚' },
+        { id: 3, name: '服装鞋帽', icon: '👔' },
+        { id: 4, name: '运动用品', icon: '⚽' },
+        { id: 5, name: '生活用品', icon: '🏠' },
+        { id: 99, name: '其他', icon: '📦' }
+      ];
+    }
+    
     try {
-      const response = await apiClient.get('/categories');
+      const response = await apiClient.get('/api/v1/categories');
       return response.data;
     } catch (error) {
       throw new Error(`获取分类列表失败: ${error.message}`);
@@ -142,6 +216,34 @@ export const productService = {
 
   // 获取我的商品列表
   getMyProducts: async (params = {}) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+      
+      // 模拟当前用户ID为1
+      const currentUserId = 1;
+      const userProducts = mockUserProducts[currentUserId] || [];
+      
+      // 状态筛选
+      let filteredProducts = userProducts;
+      if (params.status) {
+        filteredProducts = userProducts.filter(product => product.status === params.status);
+      }
+      
+      // 分页处理
+      const page = params.page || 1;
+      const pageSize = params.pageSize || 10;
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const paginatedData = filteredProducts.slice(start, end);
+      
+      return {
+        products: paginatedData,
+        total: filteredProducts.length,
+        page,
+        pageSize
+      };
+    }
+    
     try {
       const response = await apiClient.get('/products/my', { params });
       return response.data;
@@ -212,11 +314,22 @@ export const productService = {
 
   // 上传商品图片
   uploadImage: async (file) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(1000); // 模拟上传延迟
+      
+      // 🚨 MOCK UPLOAD - 仅用于开发调试
+      return {
+        url: `https://via.placeholder.com/300x300/87CEEB/000000?text=IMG${Date.now()}`,
+        filename: file.name || `image_${Date.now()}.jpg`,
+        size: file.size || 1024 * 200 // 200KB
+      };
+    }
+    
     try {
       const formData = new FormData();
       formData.append('image', file);
       
-      const response = await apiClient.post('/upload/image', formData, {
+      const response = await apiClient.post('/api/v1/upload/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -224,6 +337,38 @@ export const productService = {
       return response.data;
     } catch (error) {
       throw new Error(`图片上传失败: ${error.message}`);
+    }
+  },
+
+  // 切换商品状态（上架/下架）
+  toggleProductStatus: async (productId, action) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+      
+      // 在Mock数据中更新商品状态
+      const currentUserId = 1;
+      const userProducts = mockUserProducts[currentUserId] || [];
+      const productIndex = userProducts.findIndex(p => p.id === parseInt(productId));
+      
+      if (productIndex !== -1) {
+        const newStatus = action === 'off_shelf' ? PRODUCT_STATUS.OFF_SHELF : PRODUCT_STATUS.AVAILABLE;
+        mockUserProducts[currentUserId][productIndex] = {
+          ...userProducts[productIndex],
+          status: newStatus,
+          updatedAt: new Date().toISOString()
+        };
+        return { product: mockUserProducts[currentUserId][productIndex] };
+      } else {
+        throw new Error('商品不存在');
+      }
+    }
+    
+    try {
+      const endpoint = action === 'off_shelf' ? 'delist' : 'list';
+      const response = await apiClient.put(`/products/${productId}/${endpoint}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`状态更新失败: ${error.message}`);
     }
   }
 };

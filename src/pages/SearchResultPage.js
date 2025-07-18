@@ -16,7 +16,7 @@ import {
 import { HomeOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import ProductGrid from '../components/organisms/ProductGrid/ProductGrid';
 import ProductFilter from '../components/organisms/ProductFilter/ProductFilter';
-import { searchService } from '../services/searchService';
+import searchService from '../services/searchService';
 import { productService } from '../services/productService';
 import './SearchResultPage.css';
 
@@ -108,6 +108,7 @@ const SearchResultPage = () => {
     if (newCategory !== filters.category) {
       setFilters(prev => ({ ...prev, category: newCategory }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
 
   // 处理筛选

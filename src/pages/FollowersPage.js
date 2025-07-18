@@ -23,8 +23,8 @@ import {
   ShopOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { followService } from '../services/followService';
-import { messageService } from '../services/messageService';
+import followService from '../services/followService';
+import messageService from '../services/messageService';
 import './FollowersPage.css';
 
 const { Title, Text } = Typography;

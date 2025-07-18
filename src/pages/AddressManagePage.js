@@ -27,7 +27,7 @@ import {
   UserOutlined,
   EnvironmentOutlined
 } from '@ant-design/icons';
-import { addressService } from '../services/addressService';
+import addressService from '../services/addressService';
 import './AddressManagePage.css';
 
 const { Title, Text } = Typography;

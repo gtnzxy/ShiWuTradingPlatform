@@ -82,8 +82,11 @@ const PublishProductPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       loadCategories();
+    } else {
+      // 未登录重定向
+      navigate('/auth/login');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   // 处理图片上传
   const handleImageChange = ({ fileList: newFileList }) => {
@@ -112,24 +115,28 @@ const PublishProductPage = () => {
     try {
       setLoading(true);
       
-      // 处理上传的图片
+      // 处理上传的图片 - 按照uploadService规范
       const imageUrls = [];
-      for (const file of fileList) {
-        if (file.originFileObj) {
-          // 这里应该调用图片上传服务
-          // const imageUrl = await productService.uploadImage(file.originFileObj);
-          // imageUrls.push(imageUrl);
-          
-          // 临时处理：使用本地URL（实际项目中需要上传到服务器）
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            imageUrls.push(e.target.result);
-          };
-          reader.readAsDataURL(file.originFileObj);
+      
+      if (fileList && fileList.length > 0) {
+        for (const file of fileList) {
+          if (file.originFileObj) {
+            try {
+              // 调用图片上传服务
+              const uploadResult = await productService.uploadImage(file.originFileObj);
+              imageUrls.push(uploadResult.url);
+            } catch (uploadError) {
+              console.error('图片上传失败:', uploadError);
+              message.warning(`图片 ${file.name} 上传失败`);
+            }
+          } else if (file.url) {
+            // 已经上传的图片
+            imageUrls.push(file.url);
+          }
         }
       }
       
-      // 提交商品数据
+      // 构建商品数据 - 严格按照API规范
       const productData = {
         title: values.title,
         description: values.description,
@@ -137,25 +144,34 @@ const PublishProductPage = () => {
         categoryId: values.categoryId,
         condition: values.condition,
         location: values.location,
-        images: imageUrls
+        images: imageUrls,
+        // 添加分类名称以便显示
+        categoryName: categories.find(cat => cat.id === values.categoryId)?.name || '其他'
       };
+      
+      console.log('发布商品数据:', productData);
       
       const result = await productService.createProduct(productData);
       
-      message.success('商品发布成功');
-      navigate(`/products/${result.productId}`);
+      message.success('商品发布成功！');
+      
+      // 重置表单
+      form.resetFields();
+      setFileList([]);
+      
+      // 跳转到我的商品页面
+      navigate('/my-products');
       
     } catch (error) {
       console.error('发布商品失败:', error);
-      message.error('发布商品失败');
+      message.error(error.message || '发布商品失败，请重试');
     } finally {
       setLoading(false);
     }
   };
 
-  // 未登录重定向
+  // 未登录时显示加载状态
   if (!isAuthenticated) {
-    navigate('/auth/login');
     return null;
   }
 

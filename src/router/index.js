@@ -22,7 +22,6 @@ import OrderListPage from '../pages/OrderListPage/OrderListPage';
 import OrderDetailPage from '../pages/OrderDetailPage/OrderDetailPage';
 import OrderReviewPage from '../pages/OrderReviewPage/OrderReviewPage';
 import ReturnRequestPage from '../pages/ReturnRequestPage/ReturnRequestPage';
-import ReturnManagePage from '../pages/ReturnManagePage/ReturnManagePage';
 import UserProfilePage from '../pages/UserProfilePage';
 import UserSettingsPage from '../pages/UserSettingsPage';
 import MessageCenterPage from '../pages/MessageCenterPage';
@@ -98,14 +97,6 @@ export const router = createBrowserRouter([
       {
         path: 'orders/:orderId/return',
         element: <ReturnRequestPage />
-      },
-      {
-        path: 'returns',
-        element: <ReturnManagePage />
-      },
-      {
-        path: 'returns/:id',
-        element: <OrderDetailPage />
       },
       {
         path: 'profile/:id',
