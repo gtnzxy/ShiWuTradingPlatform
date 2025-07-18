@@ -58,9 +58,9 @@ const PaymentPage = () => {
   const paymentMethods = [
     {
       key: 'campus_card',
-      name: '校园一卡通',
+      name: '余额支付',
       icon: <CreditCardOutlined />,
-      description: '使用校园一卡通余额支付',
+      description: '使用账户余额支付',
       balance: 1288.50
     },
     {

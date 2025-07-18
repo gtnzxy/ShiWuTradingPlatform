@@ -53,7 +53,7 @@ const Logo = ({
             fontWeight: 'bold' 
           }}
         >
-          校园二手
+          拾物
         </Title>
       )}
     </div>
