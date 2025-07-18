@@ -1,0 +1,60 @@
+.product-grid {
+  width: 100%;
+}
+
+.product-grid--loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.product-grid--empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.product-grid__row {
+  margin: 0;
+}
+
+.product-grid__col {
+  margin-bottom: 16px;
+}
+
+.product-grid__item {
+  height: 100%;
+}
+
+/* 分页器样式 */
+.product-grid__pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .product-grid__col {
+    margin-bottom: 12px;
+  }
+  
+  .product-grid__pagination {
+    margin-top: 24px;
+    padding-top: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid__pagination {
+    margin-top: 16px;
+  }
+  
+  .product-grid__pagination .ant-pagination {
+    font-size: 12px;
+  }
+}

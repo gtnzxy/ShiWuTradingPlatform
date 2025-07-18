@@ -1,0 +1,81 @@
+.product-list-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.product-list-page__content {
+  padding: 24px;
+}
+
+.product-list-page__container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.product-list-page__filter {
+  margin-bottom: 24px;
+}
+
+.product-list-page__grid {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* 悬浮按钮样式调整 */
+.product-list-page .ant-float-btn-group .ant-float-btn {
+  width: 48px;
+  height: 48px;
+}
+
+.product-list-page .ant-float-btn-group .ant-float-btn-primary {
+  width: 56px;
+  height: 56px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .product-list-page__content {
+    padding: 16px;
+  }
+  
+  .product-list-page__container {
+    max-width: 100%;
+  }
+  
+  .product-list-page__filter {
+    margin-bottom: 16px;
+  }
+  
+  .product-list-page__grid {
+    padding: 16px;
+    border-radius: 0;
+    margin: 0 -16px;
+  }
+  
+  /* 移动端悬浮按钮调整 */
+  .product-list-page .ant-float-btn-group {
+    right: 16px !important;
+  }
+  
+  .product-list-page .ant-float-btn-group .ant-float-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .product-list-page .ant-float-btn-group .ant-float-btn-primary {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-list-page__content {
+    padding: 12px;
+  }
+  
+  .product-list-page__grid {
+    padding: 12px;
+  }
+}

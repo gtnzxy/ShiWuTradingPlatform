@@ -1,0 +1,247 @@
+{
+  "projectName": "Second-Hand Marketplace",
+  "projectType": "Frontend Web Application",
+  "architecture": "React Frontend + Mock API Integration",
+  "techStack": {
+    "frontend": {
+      "framework": "React 19.x",
+      "language": "JavaScript + TypeScript (where needed)",
+      "uiLibrary": "Ant Design (antd) 5.x",
+      "routing": "React Router 7.x",
+      "httpClient": "Axios 1.x",
+      "stateManagement": "React Context API",
+      "buildTool": "Create React App",
+      "styling": "CSS + Ant Design Theme",
+      "mockData": "JSON files + Mock Service Worker (MSW)",
+      "formHandling": "Ant Design Form + native validation",
+      "testing": "Jest + React Testing Library",
+      "deployment": "Vercel / Netlify / GitHub Pages"
+    }
+  },
+  "developmentRules": {
+    "codeStyle": {
+      "componentNaming": "PascalCase for components, camelCase for functions and variables",
+      "fileStructure": "Atomic Design Pattern (Atoms, Molecules, Organisms, Templates, Pages)",
+      "typescript": "Optional for complex components, JavaScript for most files",
+      "imports": "Relative imports with standard structure",
+      "styling": "Use Ant Design built-in styles and className prop",
+      "stateManagement": "Use React Context for global state, local state for component-specific data",
+      "errorHandling": "Error boundaries for components, try-catch for async operations",
+      "testing": "Component testing with React Testing Library, mock external dependencies"
+    },
+    "folderStructure": {
+      "src/": "Main source code directory",
+      "src/components/": "Reusable UI components organized by atomic design",
+      "src/components/atoms/": "Basic UI elements (Button, Input, Icon, etc.)",
+      "src/components/molecules/": "Combinations of atoms (SearchBar, ProductCard, etc.)",
+      "src/components/organisms/": "Complex components (Header, ProductList, OrderTable, etc.)",
+      "src/components/templates/": "Page layouts (MainLayout, AdminLayout)",
+      "src/pages/": "Page-level components representing routes",
+      "src/services/": "API service functions and HTTP client configuration",
+      "src/hooks/": "Custom React hooks for reusable logic",
+      "src/utils/": "Helper functions, formatters, and utilities",
+      "src/types/": "TypeScript type definitions and interfaces",
+      "src/constants/": "Application constants and configuration",
+      "src/router/": "Routing configuration and route definitions",
+      "src/styles/": "Global styles, theme configuration, and CSS modules",
+      "src/context/": "React Context providers for global state",
+      "src/mocks/": "Mock data and Mock Service Worker setup",
+      "public/": "Static assets (images, icons, manifest, etc.)"
+    }
+  },
+  "implementationPriority": [
+    {
+      "phase": "Phase 1 - Project Setup & Core Components",
+      "features": [
+        "Create React App project initialization",
+        "Ant Design theme setup and configuration",
+        "Folder structure and standard imports setup",
+        "Basic atomic components (Button, Input, Loading, etc.) using Ant Design",
+        "Routing configuration with React Router",
+        "Mock API setup with Mock Service Worker"
+      ],
+      "duration": "Week 1"
+    },
+    {
+      "phase": "Phase 2 - Authentication & User Management",
+      "features": [
+        "Login and Registration pages with form validation",
+        "Authentication context and state management",
+        "User profile page and user info display",
+        "Protected routes and navigation guards",
+        "Mock authentication API integration"
+      ],
+      "duration": "Week 2"
+    },
+    {
+      "phase": "Phase 3 - Product Management",
+      "features": [
+        "Product listing page with search and filtering",
+        "Product detail page with image carousel",
+        "Product publish/edit form with image upload",
+        "Product card components and grid layout",
+        "Category-based navigation"
+      ],
+      "duration": "Week 3"
+    },
+    {
+      "phase": "Phase 4 - Shopping & Orders",
+      "features": [
+        "Shopping cart functionality and management",
+        "Order creation and checkout process",
+        "Order listing and detail pages",
+        "Order status tracking and updates",
+        "Review and rating system"
+      ],
+      "duration": "Week 4"
+    },
+    {
+      "phase": "Phase 5 - Social Features",
+      "features": [
+        "Messaging system UI and real-time updates",
+        "Notification center and system alerts",
+        "User following functionality",
+        "Activity feed and updates",
+        "After-sales and return process UI"
+      ],
+      "duration": "Week 5"
+    },
+    {
+      "phase": "Phase 6 - Polish & Optimization",
+      "features": [
+        "Error handling and loading states",
+        "Performance optimization and code splitting",
+        "Responsive design and mobile optimization",
+        "Testing implementation and coverage",
+        "Deployment setup and CI/CD"
+      ],
+      "duration": "Week 6"
+    }
+  ],
+  "mockApiDesign": {
+    "baseUrl": "/api/v1",
+    "mockStrategy": "Mock Service Worker (MSW) for API interception",
+    "dataStorage": "localStorage for persistent mock data",
+    "endpoints": {
+      "auth": [
+        "POST /auth/login",
+        "POST /auth/register",
+        "POST /auth/logout",
+        "GET /auth/profile"
+      ],
+      "users": [
+        "GET /users/:id",
+        "PUT /users/:id",
+        "POST /users/:id/follow",
+        "GET /users/:id/followers",
+        "GET /users/following"
+      ],
+      "products": [
+        "GET /products",
+        "GET /products/:id",
+        "POST /products",
+        "PUT /products/:id",
+        "DELETE /products/:id",
+        "GET /categories"
+      ],
+      "orders": [
+        "GET /orders",
+        "GET /orders/:id",
+        "POST /orders",
+        "PUT /orders/:id/status",
+        "POST /orders/:id/review"
+      ],
+      "messages": [
+        "GET /conversations",
+        "GET /conversations/:id/messages",
+        "POST /messages",
+        "PUT /notifications/:id/read"
+      ],
+      "social": [
+        "GET /users/:id/profile",
+        "POST /users/:id/follow",
+        "GET /users/following"
+      ]
+    },
+    "responseFormat": {
+      "success": {
+        "code": 200,
+        "message": "Success",
+        "data": "Actual response data"
+      },
+      "error": {
+        "code": "A0001",
+        "message": "Error description",
+        "userTip": "User-friendly error message"
+      }
+    }
+  },
+  "dataModeling": {
+    "typeDefinitions": [
+      "User", "Product", "Category", "Order", "Review", 
+      "Notification", "Message", "Conversation", "CartItem"
+    ],
+    "interfaces": {
+      "User": "userId, username, nickname, avatarUrl, status, followerCount, averageRating",
+      "Product": "productId, title, description, price, status, imageUrls, category, seller",
+      "Order": "orderId, buyer, seller, product, status, priceAtPurchase, createdAt"
+    },
+    "enums": [
+      "UserStatus (ACTIVE, BANNED, MUTED)",
+      "ProductStatus (DRAFT, PENDING_REVIEW, ONSALE, LOCKED, SOLD, DELISTED)",
+      "OrderStatus (AWAITING_PAYMENT, AWAITING_SHIPPING, SHIPPED, COMPLETED, CANCELLED, RETURNED)"
+    ]
+  },
+  "frontendSecurityRequirements": {
+    "authentication": "JWT token storage in httpOnly cookies simulation",
+    "inputValidation": "Client-side validation with React Hook Form + Yup",
+    "xssPrevention": "Sanitize all user-generated content before rendering",
+    "routeProtection": "Protected routes with authentication guards",
+    "dataEncryption": "Sensitive data handling best practices",
+    "mockSecurity": "Simulate authentication flow without real backend"
+  },
+  "performanceTargets": {
+    "bundleSize": "Initial bundle under 1MB, lazy load non-critical routes",
+    "renderTime": "First contentful paint under 2 seconds",
+    "interactivity": "Time to interactive under 3 seconds",
+    "imageOptimization": "Lazy loading, WebP format support, responsive images",
+    "codesplitting": "Route-based splitting, dynamic imports for heavy components",
+    "memorization": "Proper use of React.memo, useMemo, useCallback"
+  },
+  "testingStrategy": {
+    "unitTesting": "Jest + React Testing Library for component testing",
+    "integrationTesting": "Testing user interactions and component integration",
+    "mockTesting": "Test with Mock Service Worker for API calls",
+    "e2eTesting": "Playwright for critical user journeys",
+    "coverage": "Minimum 80% test coverage for components and utilities",
+    "testingPatterns": "Test user behavior, not implementation details"
+  },
+  "deploymentConfig": {
+    "platform": "Vercel, Netlify, or GitHub Pages",
+    "buildCommand": "npm run build (Create React App build)",
+    "environmentVariables": "REACT_APP_API_BASE_URL, REACT_APP_MOCK_ENABLED",
+    "staticAssets": "Optimized images, fonts, and other assets",
+    "routing": "SPA routing with fallback to index.html",
+    "cicd": "GitHub Actions for automated testing and deployment"
+  },
+  "errorHandling": {
+    "componentErrors": "Error boundaries to catch and display errors gracefully",
+    "apiErrors": "Centralized error handling for API calls with user-friendly messages",
+    "loadingStates": "Proper loading indicators and skeleton screens",
+    "formValidation": "Real-time validation with clear error messages",
+    "fallbackUI": "Graceful degradation when features fail"
+  },
+  "dataValidation": {
+    "formValidation": "Ant Design Form with built-in validation",
+    "typeChecking": "TypeScript strict mode for compile-time type checking",
+    "runtimeValidation": "Validate API responses and user inputs",
+    "fileUploads": "Validate file type, size (max 5MB), and dimensions on frontend"
+  },
+  "stateManagement": {
+    "globalState": "React Context for user authentication and app-wide settings",
+    "localState": "useState for component-specific state",
+    "serverState": "Custom hooks for API data fetching and caching",
+    "formState": "Ant Design Form for form state management",
+    "urlState": "React Router for URL-based state management"
+  }
+}

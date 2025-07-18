@@ -1,0 +1,91 @@
+/* App.css - 应用主样式文件 */
+
+.App {
+  text-align: center;
+}
+
+/* 通用样式 */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* 间距工具类 */
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.mb-24 {
+  margin-bottom: 24px;
+}
+
+.mb-32 {
+  margin-bottom: 32px;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mt-24 {
+  margin-top: 24px;
+}
+
+.mt-32 {
+  margin-top: 32px;
+}
+
+/* 响应式辅助类 */
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .hidden-desktop {
+    display: none !important;
+  }
+}
+
+/* 自定义组件样式 */
+.ant-layout-header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 卡片悬停效果增强 */
+.ant-card-hoverable:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* 错误状态样式 */
+.error-container {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.error-title {
+  color: #ff4d4f;
+  margin-bottom: 16px;
+}
+
+.error-description {
+  color: #8c8c8c;
+  margin-bottom: 24px;
+}

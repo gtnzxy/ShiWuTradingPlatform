@@ -1,0 +1,103 @@
+.product-filter {
+  margin-bottom: 16px;
+}
+
+.product-filter__search {
+  margin-bottom: 16px;
+}
+
+.product-filter__quick-filters {
+  margin-bottom: 8px;
+}
+
+.product-filter__label {
+  color: #666;
+  font-weight: 500;
+}
+
+.product-filter__item {
+  width: 100%;
+}
+
+.product-filter__item label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.product-filter__actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  text-align: right;
+}
+
+/* 滑块样式调整 */
+.product-filter .ant-slider {
+  margin: 16px 0 8px 0;
+}
+
+.product-filter .ant-slider-mark {
+  font-size: 12px;
+}
+
+/* 可选标签样式 */
+.product-filter .ant-tag.ant-tag-checkable {
+  border-radius: 16px;
+  padding: 4px 12px;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  transition: all 0.3s;
+}
+
+.product-filter .ant-tag.ant-tag-checkable.ant-tag-checkable-checked {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
+}
+
+.product-filter .ant-tag.ant-tag-checkable:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 折叠面板样式 */
+.product-filter .ant-collapse-ghost > .ant-collapse-item > .ant-collapse-header {
+  padding: 8px 0;
+  font-weight: 500;
+}
+
+.product-filter .ant-collapse-ghost > .ant-collapse-item > .ant-collapse-content > .ant-collapse-content-box {
+  padding: 16px 0 0 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .product-filter__quick-filters {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 8px;
+  }
+  
+  .product-filter__quick-filters .ant-space {
+    display: inline-flex;
+    min-width: max-content;
+  }
+  
+  .product-filter__actions {
+    text-align: center;
+  }
+  
+  .product-filter__actions .ant-space {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-filter__actions .ant-btn {
+    flex: 1;
+  }
+}

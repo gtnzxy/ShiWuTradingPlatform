@@ -1,0 +1,53 @@
+.price-tag {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.price-tag--small {
+  font-size: 14px;
+}
+
+.price-tag--medium {
+  font-size: 16px;
+}
+
+.price-tag--large {
+  font-size: 20px;
+}
+
+.price-tag__current {
+  color: #f5222d;
+  font-weight: 600;
+}
+
+.price-tag__original {
+  color: #8c8c8c;
+  text-decoration: line-through;
+  font-size: 0.85em;
+}
+
+.price-tag__discount {
+  background: #ff4d4f;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .price-tag--large {
+    font-size: 18px;
+  }
+  
+  .price-tag--medium {
+    font-size: 14px;
+  }
+  
+  .price-tag--small {
+    font-size: 12px;
+  }
+}

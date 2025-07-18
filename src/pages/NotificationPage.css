@@ -1,0 +1,128 @@
+.notification-page {
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+  padding: 24px;
+}
+
+.notification-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.notification-login-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 64px);
+  padding: 24px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  padding: 16px 0;
+}
+
+.filter-card {
+  margin-bottom: 16px;
+}
+
+.batch-actions {
+  margin-bottom: 16px;
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.notification-list-card {
+  background: #fff;
+}
+
+.notification-item {
+  padding: 16px 24px !important;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.notification-item:hover {
+  background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+  background-color: #f6ffed;
+  border-left: 4px solid #52c41a;
+}
+
+.notification-item.unread:hover {
+  background-color: #f0f9e8;
+}
+
+.notification-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.notification-time {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.unread-content {
+  font-weight: 500;
+  color: #262626;
+}
+
+.notification-settings .ant-space-vertical {
+  width: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .notification-page {
+    padding: 16px;
+  }
+  
+  .notification-item {
+    padding: 12px 16px !important;
+  }
+  
+  .notification-title {
+    flex-wrap: wrap;
+  }
+  
+  .notification-time {
+    margin-left: 0;
+    order: 3;
+    width: 100%;
+    margin-top: 4px;
+  }
+  
+  .filter-card .ant-row {
+    text-align: center;
+  }
+  
+  .filter-card .ant-segmented {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header .ant-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .page-header .ant-col {
+    width: 100%;
+  }
+  
+  .batch-actions {
+    text-align: center;
+  }
+  
+  .notification-item .ant-list-item-action {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}

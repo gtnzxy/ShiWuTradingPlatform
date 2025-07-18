@@ -1,0 +1,794 @@
+校园二手交易平台 - 概要设计文档 (v5.0 - React架构 - 完全无省略最终版)
+文档版本	状态	修订者	日期	变更摘要
+5.0	最终完整版	Gem (AI Assistant)	2025年07月16日	遵照“无任何省略”的核心要求，移除所有折叠区域，将全部API、数据表、DTO/VO、枚举等定义直接、完整地呈现在文档中。此为生产级最终版本。
+4.0	已废弃	Gem (AI Assistant)	2025年07月16日	重大架构变更：适配前后端分离模型。前端迁移至React + TypeScript技术栈。
+3.0	已废弃	Gem (AI Assistant)	2025年07月16日	基于JSP单体应用的最终完整版。
+1. 系统总体设计
+1.1. 项目概述
+本项目旨在开发一个名为“拾物”（项目统一标识：校园二手交易平台）的C2C二手交易平台。系统将严格遵循《软件需求规格说明书 (SRS) v8.0》中定义的19个核心用例，并基于《技术栈 v2.0》文档中规定的前后端分离技术栈进行开发。
+1.2. 系统架构
+1.2.1. 应用分层架构
+【规范遵从性说明】
+本架构采用前后端分离模式，后端遵循《阿里巴巴Java开发手册》的应用分层模型，前端采用组件化架构。
+●前端应用 (Frontend Application - SPA):
+○架构: 基于React的单页面应用。
+○职责:
+1.视图层 (View): 使用React组件 (.tsx) 和 Material-UI 构建用户界面。
+2.路由层 (Routing): 使用React Router管理页面导航和URL。
+3.服务层 (Services): 使用Axios封装对后端API的HTTP请求。
+4.状态管理层 (State Management): 使用React Context或Zustand管理全局和局部应用状态。
+○交互方式: 通过HTTP/HTTPS协议调用后端RESTful API，收发JSON格式数据。
+●后端服务 (Backend Service - RESTful API):
+○架构: 基于Java Servlet的纯API服务。
+○职责:
+1.请求处理层 (Web Layer): Servlet接收HTTP请求，解析参数，调用Service。
+2.业务逻辑层 (Service Layer): 实现核心业务逻辑，管理事务。
+3.通用逻辑层 (Manager Layer): 封装可复用的通用数据操作。
+4.数据持久层 (DAO Layer): 通过JDBC与数据库交互。
+5.数据存储层 (Data Storage): MySQL数据库。
+1.2.2. 技术架构图
+graph TD
+    subgraph "客户端 (Browser)"
+        direction LR
+        Browser["用户浏览器"]
+    end
+
+    subgraph "前端应用 (SPA - 由Nginx或静态服务器承载)"
+        direction LR
+        ReactApp["<b>React 单页面应用</b><br>UI Components (MUI)<br>Routing (React Router)<br>State Management<br>API Client (Axios)"]
+    end
+
+    subgraph "后端服务 (Apache Tomcat)"
+        direction LR
+        WebLayer["<b>Web层 (Controller)</b><br>Servlet API<br>处理HTTP请求, 鉴权"]
+        ServiceLayer["<b>Service层</b><br>业务逻辑, 事务"]
+        ManagerLayer["<b>Manager层</b><br>通用数据能力"]
+        DAOLayer["<b>DAO层</b><br>数据库操作"]
+    end
+    
+    subgraph "数据存储"
+        direction LR
+        Database[(MySQL)]
+    end
+
+    Browser -- "加载静态资源 (HTML/CSS/JS)" --> ReactApp
+    ReactApp -- "API请求 (JSON over HTTP/HTTPS)" --> WebLayer
+    WebLayer -- "调用" --> ServiceLayer
+    ServiceLayer -- "调用" --> ManagerLayer
+    ManagerLayer -- "调用" --> DAOLayer
+    DAOLayer -- "JDBC" --> Database
+
+1.3. 领域模型定义
+【规范遵从性说明】
+●后端: 遵循《阿里巴巴Java开发手册》第六章的分层领域模型规约 (DO, DTO, Query)。
+●前端:
+○*.types.ts: 使用TypeScript的interface或type定义与后端VO (View Object) 对应的类型，确保数据交互的类型安全。
+○*.model.ts: 可用于定义前端内部更复杂的业务模型。
+2. 模块与接口设计
+2.1. 统一响应格式
+接口响应格式保持不变，前端Axios将配置拦截器，统一处理成功和失败的响应结构。
+2.1.1. 成功响应 (200 OK)
+{
+  "success": true,
+  "data": { ... } // 业务数据 (对应前端的 *.types.ts 类型)
+}
+
+2.1.2. 失败响应 (如 400, 401, 403, 500)
+{
+  "success": false,
+  "error": {
+    "code": "A0101", 
+    "message": "用户名或密码错误",
+    "userTip": "用户名或密码不正确，请重试。"
+  }
+}
+
+2.2. 接口清单 (完全无省略版)
+2.2.1. 用户与认证模块 (/users, /auth)
+1. 用户注册 (UC-01)
+●方法: POST
+●URL: /users
+●描述: 创建一个新用户账户。
+●请求体 (application/json): UserRegisterDTO
+{
+  "username": "new_user_123",
+  "password": "Password@123",
+  "confirmPassword": "Password@123",
+  "nickname": "新手用户"
+}
+
+●成功响应 (201 Created): data 字段包含新创建用户的部分信息。
+{
+  "success": true,
+  "data": {
+    "userId": "1001",
+    "username": "new_user_123",
+    "nickname": "新手用户"
+  }
+}
+
+●失败响应:
+○400 Bad Request (A0110: 用户名已存在, A0201: 参数校验失败)
+○500 Internal Server Error (B0001: 系统执行出错)
+2. 用户登录 (UC-01)
+●方法: POST
+●URL: /auth/login
+●描述: 用户登录，创建会话。
+●请求体 (application/json): UserLoginDTO
+{
+  "username": "test_user",
+  "password": "password123"
+}
+
+●成功响应 (200 OK): data 字段包含用户信息和会话凭证(隐式，通过Set-Cookie头设置JSESSIONID)。
+{
+  "success": true,
+  "data": {
+    "userId": "1002",
+    "username": "test_user",
+    "nickname": "测试用户"
+  }
+}
+
+●失败响应:
+○401 Unauthorized (A0101: 用户名或密码错误, A0102: 账户已被封禁)
+3. 用户登出
+●方法: POST
+●URL: /auth/logou
+●描述: 销毁当前用户会话。
+●请求体: 无
+●成功响应 (200 OK):
+{ "success": true, "data": null }
+
+4. 查看用户个人主页 (UC-02)
+●方法: GET
+●URL: /users/{userId}
+●描述: 查看指定用户的公开信息及其在售商品。
+●路径参数: userId (long)
+●成功响应 (200 OK): data 字段为 UserProfileVO。
+●失败响应: 404 Not Found (A0120: 用户不存在)
+5. 关注/取消关注用户 (UC-12)
+●方法: POST
+●URL: /users/{userId}/followers
+●描述: 关注或取消关注指定用户。
+●路径参数: userId (long) - 被操作的用户ID。
+●请求体 (application/json):
+{
+  "action": "FOLLOW"
+}
+
+或
+{
+  "action": "UNFOLLOW"
+}
+
+●成功响应 (200 OK): 返回操作后的关注状态。
+{
+  "success": true,
+  "data": { "isFollowing": true }
+}
+
+●失败响应: 401 Unauthorized, 404 Not Found
+2.2.2. 商品模块 (/products, /categories)
+6. 发布商品 (UC-03)
+●方法: POST
+●URL: /products
+●描述: 发布新商品或保存为草稿。使用multipart/form-data以支持文件上传。
+●请求参数 (form-data):
+○title (String, 必填)
+○description (String, 必填)
+○price (Decimal, 必填)
+○categoryId (Integer, 必填)
+○images (File[], 必填, 至少一张)
+○action (String, 必填): SUBMIT_REVIEW 或 SAVE_DRAFT
+●成功响应 (201 Created): data 字段包含新商品的ID。
+{
+    "success": true,
+    "data": { "productId": "5001" }
+}
+
+●失败响应: 400 Bad Request, 401 Unauthorized
+7. 编辑商品 (UC-03)
+●方法: PUT
+●URL: /products/{productId}
+●描述: 编辑已存在的商品信息。
+●路径参数: productId (long)
+●请求体 (application/json): ProductUpdateDTO
+●成功响应 (200 OK): data 字段为更新后的 ProductDetailVO。
+●失败响应: 400, 401, 403 (无权操作), 404
+8. 删除/下架商品 (UC-03)
+●方法: DELETE
+●URL: /products/{productId}
+●描述: 删除草稿或下架在售商品。
+●路径参数: productId (long)
+●成功响应 (204 No Content): 响应体为空。
+●失败响应: 401, 403, 404
+9. 搜索、浏览与筛选商品 (UC-04)
+●方法: GET
+●URL: /products
+●描述: 系统的核心商品发现接口。
+●查询参数: ProductQuery
+○keyword (String, 可选): 搜索关键字
+○categoryId (Integer, 可选): 分类ID
+○minPrice (Decimal, 可选): 最低价
+○maxPrice (Decimal, 可选): 最高价
+○sortBy (String, 可选): CREATE_TIME_DESC, PRICE_ASC, PRICE_DESC
+○page (Integer, 可选, 默认1)
+○pageSize (Integer, 可选, 默认20)
+●成功响应 (200 OK): data 字段为分页对象，包含商品列表 ProductCardVO[]。
+{
+  "success": true,
+  "data": {
+    "page": 1,
+    "pageSize": 20,
+    "total": 153,
+    "list": [
+      {
+        "productId": "5002",
+        "title": "九成新专业书籍",
+        "mainImageUrl": "http://.../image1.jpg",
+        "price": 50.00
+      }
+    ]
+  }
+}
+
+10. 查看商品详情 (UC-05)
+●方法: GET
+●URL: /products/{productId}
+●描述: 获取单个商品的完整信息。
+●路径参数: productId (long)
+●成功响应 (200 OK): data 字段为 ProductDetailVO。
+●失败响应: 404 Not Found (商品不存在或已下架)
+11. 获取所有商品分类
+●方法: GET
+●URL: /categories
+●描述: 获取用于筛选和发布的商品分类列表。
+●成功响应 (200 OK): data 字段为 CategoryVO[]。
+{
+    "success": true,
+    "data": [
+        { "categoryId": 1, "name": "图书教材" },
+        { "categoryId": 2, "name": "电子产品" }
+    ]
+}
+
+2.2.3. 交易模块 (/cart, /orders, /reviews)
+12. 添加商品到购物车 (UC-06)
+●方法: POST
+●URL: /cart/items
+●请求体 (application/json): { "productId": 12345, "quantity": 1 } (quantity 恒为1)
+●成功响应 (200 OK): 返回当前购物车商品总数。
+{
+    "success": true,
+    "data": { "totalItems": 3 }
+}
+
+●失败响应: 400 (不能添加自己的商品), 404 (商品不存在), 401
+13. 从购物车移除商品 (UC-06)
+●方法: DELETE
+●URL: /cart/items/{productId}
+●路径参数: productId (long)
+●成功响应 (204 No Content): 响应体为空。
+●失败响应: 401, 404
+14. 查看购物车 (UC-06)
+●方法: GET
+●URL: /cart
+●成功响应 (200 OK): data 字段为 CartVO。
+●失败响应: 401
+15. 创建订单 (UC-07)
+●方法: POST
+●URL: /orders
+●请求体 (application/json): OrderCreateDTO { "productIds": [123, 456] }
+●成功响应 (201 Created): data 字段包含新创建的订单ID列表。
+{
+    "success": true,
+    "data": { "orderIds": ["9001", "9002"] }
+}
+
+●失败响应: 400 (商品状态已变更), 401
+16. 模拟支付 (UC-07)
+●方法: POST
+●URL: /orders/{orderId}/payment
+●路径参数: orderId (long)
+●成功响应 (200 OK): 返回支付结果。
+{
+    "success": true,
+    "data": { "status": "SUCCESS" }
+}
+
+●失败响应: 401, 404
+17. 查看订单列表 (UC-08)
+●方法: GET
+●URL: /orders
+●查询参数:
+○role (String, 必填): BUYER 或 SELLER
+○status (String, 可选): 订单状态
+○page (Integer, 可选, 默认1)
+○pageSize (Integer, 可选, 默认20)
+●成功响应 (200 OK): 返回分页的 OrderSummaryVO[]。
+●失败响应: 401
+18. 查看订单详情 (UC-08)
+●方法: GET
+●URL: /orders/{orderId}
+●路径参数: orderId (long)
+●成功响应 (200 OK): 返回 OrderDetailVO。
+●失败响应: 401, 404
+19. 卖家发货 (UC-08)
+●方法: PUT
+●URL: /orders/{orderId}/shipment
+●路径参数: orderId (long)
+●成功响应 (200 OK): 返回更新后的订单详情。
+●失败响应: 401, 403, 404
+20. 买家确认收货 (UC-08)
+●方法: PUT
+●URL: /orders/{orderId}/confirmation
+●路径参数: orderId (long)
+●成功响应 (200 OK): 返回更新后的订单详情。
+●失败响应: 401, 403, 404
+21. 申请售后/退货 (UC-10)
+●方法: POST
+●URL: /orders/{orderId}/return-requests
+●路径参数: orderId (long)
+●请求体 (application/json): { "reason": "商品与描述不符" }
+●成功响应 (200 OK): 返回更新后的订单详情。
+●失败响应: 400 (超出时限), 401, 403, 404
+22. 处理退货请求 (UC-18)
+●方法: PUT
+●URL: /orders/{orderId}/return-requests
+●路径参数: orderId (long)
+●请求体 (application/json): { "action": "APPROVE", "reason": "同意退货" } (action: APPROVE / REJECT)
+●成功响应 (200 OK): 返回更新后的订单详情。
+●失败响应: 401, 403, 404
+23. 评价订单 (UC-09)
+●方法: POST
+●URL: /orders/{orderId}/reviews
+●路径参数: orderId (long)
+●请求体 (application/json): ReviewCreateDTO
+●成功响应 (201 Created): 返回创建的评价信息。
+●失败响应: 400 (不可评价), 401, 403, 404
+2.2.4. 消息与通知模块 (/messages, /notifications)
+24. 发送消息 (UC-11)
+●方法: POST
+●URL: /messages
+●请求体 (application/json): MessageSendDTO
+●成功响应 (201 Created): 返回发送的消息内容。
+●失败响应: 401, 404 (接收方不存在)
+25. 查看消息列表 (会话列表)
+●方法: GET
+●URL: /messages/conversations
+●成功响应 (200 OK): 返回分页的 ConversationVO[]。
+●失败响应: 401
+26. 查看单个会话的消息历史
+●方法: GET
+●URL: /messages/conversations/{conversationId}
+●路径参数: conversationId (String)
+●成功响应 (200 OK): 返回分页的 MessageVO[]。
+●失败响应: 401, 403
+27. 查看系统通知 (UC-13)
+●方法: GET
+●URL: /notifications
+●成功响应 (200 OK): 返回分页的 NotificationVO[]。
+●失败响应: 401
+28. 标记通知为已读
+●方法: PUT
+●URL: /notifications/{notificationId}/read-status
+●路径参数: notificationId (long)
+●成功响应 (204 No Content): 响应体为空。
+●失败响应: 401, 403, 404
+2.2.5. 后台管理模块 (/admin/**)
+所有后台接口URL均以/admin开头，并需要管理员权限。
+29. 管理员登录 (UC-14)
+●方法: POST
+●URL: /admin/auth/login
+●请求体 (application/json): { "username": "admin", "password": "admin_password" }
+●成功响应 (200 OK): 创建管理员会话。
+30. 查看数据仪表盘 (UC-15)
+●方法: GET
+●URL: /admin/dashboard/stats
+●成功响应 (200 OK): 返回 DashboardStatsVO。
+●失败响应: 401, 403
+31. 审核商品 (UC-16)
+●方法: PUT
+●URL: /admin/products/{productId}/review
+●路径参数: productId (long)
+●请求体 (application/json): { "action": "APPROVE", "reason": "内容合规" } (action: APPROVE / REJECT)
+●成功响应 (200 OK): 返回操作结果。
+●失败响应: 401, 403, 404
+32. 管理用户账户 (UC-17)
+●方法: PUT
+●URL: /admin/users/{userId}/status
+●路径参数: userId (long)
+●请求体 (application/json): { "action": "BAN", "reason": "发布违规内容" } (action: BAN / MUTE / UNBAN)
+●成功响应 (200 OK): 返回操作结果。
+●失败响应: 401, 403, 404
+33. 查看审计日志 (UC-19)
+●方法: GET
+●URL: /admin/audit-logs
+●查询参数: adminId, action, targetEntity, targetId, startDate, endDate, page, pageSize
+●成功响应 (200 OK): 返回分页的 AuditLogVO[]。
+●失败响应: 401, 403
+3. 数据库设计 (完全无省略版)
+【规范遵从性说明】
+●命名: 表名、字段名全小写，使用下划线_分割。表名不使用复数。
+●必备字段: 所有表强制包含id (主键, bigint(20) unsigned), create_time (datetime), update_time (datetime)。
+●逻辑删除: 使用is_deleted字段 (tinyint(1) unsigned) 表示逻辑删除，0为未删除，1为已删除。
+●数据类型: 价格使用decimal(10, 2)，布尔标志使用tinyint(1) unsigned，禁止使用float/double。
+●索引: 主键索引为pk_前缀，唯一索引为uk_前缀，普通索引为idx_前缀。
+●外键: 不使用数据库物理外键，所有关联在应用层维护。
+●注释: 所有表和字段必须有明确的中文注释。
+3.1. 表结构清单
+1. 用户表 (user)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| username | varchar(50) | 否 | | 用户名, 唯一 |
+| password_hash | varchar(100) | 否 | | 加盐哈希后的密码 (jBCrypt) |
+| nickname | varchar(50) | 否 | | 用户昵称 |
+| avatar_url | varchar(255) | 是 | NULL | 头像URL |
+| status | tinyint(4) | 否 | 0 | 用户状态 (0:ACTIVE, 1:BANNED, 2:MUTED) |
+| follower_count | int(11) unsigned | 否 | 0 | 粉丝数 |
+| average_rating | decimal(3, 2) | 否 | 0.00 | 作为卖家的平均评分 |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 (0:未删, 1:已删) |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), uk_username (唯一)
+2. 商品表 (product)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| seller_id | bigint(20) unsigned | 否 | | 卖家用户ID |
+| category_id | int(11) unsigned | 否 | | 商品分类ID |
+| title | varchar(100) | 否 | | 商品标题 |
+| description | text | 是 | NULL | 商品详细描述 |
+| price | decimal(10, 2) | 否 | | 价格 |
+| status | tinyint(4) | 否 | 0 | 商品状态 (见附录B.2) |
+| image_urls | json | 是 | NULL | 图片URL列表 (JSON数组) |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), idx_seller_id_status (普通), idx_category_id (普通), idx_title (普通)
+3. 商品分类表 (category)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | int(11) unsigned | 否 | | 主键ID, 自增 |
+| name | varchar(50) | 否 | | 分类名称, 唯一 |
+| parent_id | int(11) unsigned | 否 | 0 | 父分类ID (0为顶级分类) |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), uk_name (唯一)
+4. 订单表 (trade_order)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| buyer_id | bigint(20) unsigned | 否 | | 买家用户ID |
+| seller_id | bigint(20) unsigned | 否 | | 卖家用户ID |
+| product_id | bigint(20) unsigned | 否 | | 商品ID |
+| price_at_purchase | decimal(10, 2) | 否 | | 交易快照-购买时价格 |
+| product_title_snapshot | varchar(100) | 否 | | 交易快照-商品标题 |
+| product_image_snapshot | varchar(255) | 是 | NULL | 交易快照-商品主图 |
+| status | tinyint(4) | 否 | 0 | 订单状态 (见附录B.3) |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), idx_buyer_id_status (普通), idx_seller_id_status (普通)
+5. 评价表 (review)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| order_id | bigint(20) unsigned | 否 | | 关联的订单ID, 唯一 |
+| product_id | bigint(20) unsigned | 否 | | 关联的商品ID |
+| user_id | bigint(20) unsigned | 否 | | 发表评价的用户ID (买家) |
+| rating | tinyint(4) | 否 | | 评分 (1-5) |
+| comment | varchar(500) | 是 | NULL | 评价内容 |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), uk_order_id (唯一), idx_product_id (普通)
+6. 通知表 (notification)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| recipient_id | bigint(20) unsigned | 否 | | 接收者用户ID |
+| content | varchar(255) | 否 | | 通知内容 |
+| source_type | tinyint(4) | 否 | | 来源类型 (见附录B.4) |
+| source_id | bigint(20) unsigned | 否 | | 来源实体ID (如订单ID) |
+| is_read | tinyint(1) unsigned | 否 | 0 | 是否已读 (0:未读, 1:已读) |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), idx_recipient_id_is_read (普通)
+7. 审计日志表 (audit_log)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| admin_id | bigint(20) unsigned | 否 | | 操作的管理员ID |
+| action | varchar(50) | 否 | | 操作类型 (如: BAN_USER) |
+| target_entity | varchar(50) | 否 | | 目标实体类型 (如: USER, PRODUCT) |
+| target_id | bigint(20) unsigned | 否 | | 目标实体ID |
+| reason | varchar(255) | 是 | NULL | 操作原因 |
+| ip_address | varchar(45) | 否 | | 操作者IP地址 (支持IPv6) |
+| result_status | tinyint(4) | 否 | 0 | 操作结果 (0:SUCCESS, 1:FAILURE) |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), idx_admin_id (普通), idx_target_entity_target_id (普通)
+8. 购物车表 (shopping_cart)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| user_id | bigint(20) unsigned | 否 | | 用户ID |
+| product_id | bigint(20) unsigned | 否 | | 商品ID |
+| quantity | int(11) unsigned | 否 | 1 | 数量 (本项目固定为1) |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), uk_user_id_product_id (唯一)
+9. 关注关系表 (user_follow)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| follower_id | bigint(20) unsigned | 否 | | 关注者ID |
+| followed_id | bigint(20) unsigned | 否 | | 被关注者ID |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 (用于取关) |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), uk_follower_id_followed_id (唯一), idx_followed_id (普通)
+10. 消息表 (message)
+| 字段名 | 类型 | 允许空 | 默认值 | 注释 |
+| :--- | :--- | :--- | :--- | :--- |
+| id | bigint(20) unsigned | 否 | | 主键ID, 自增 |
+| conversation_id | varchar(64) | 否 | | 会话ID (如: user1_user2) |
+| sender_id | bigint(20) unsigned | 否 | | 发送者ID |
+| receiver_id | bigint(20) unsigned | 否 | | 接收者ID |
+| product_id | bigint(20) unsigned | 是 | NULL | 关联的商品ID |
+| content | text | 否 | | 消息内容 |
+| is_read | tinyint(1) unsigned | 否 | 0 | 是否已读 (0:未读, 1:已读) |
+| is_deleted | tinyint(1) unsigned | 否 | 0 | 逻辑删除标志 |
+| create_time | datetime | 否 | CURRENT_TIMESTAMP | 创建时间 |
+| update_time | datetime | 否 | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
+●索引: pk_id (主键), idx_conversation_id_create_time (普通)
+3.2. E-R 图 (完整版)
+erDiagram
+    USER {
+        bigint id PK
+        varchar username
+        varchar nickname
+    }
+    PRODUCT {
+        bigint id PK
+        bigint seller_id FK
+        varchar title
+    }
+    CATEGORY {
+        int id PK
+        varchar name
+    }
+    TRADE_ORDER {
+        bigint id PK
+        bigint buyer_id FK
+        bigint seller_id FK
+        bigint product_id FK
+    }
+    REVIEW {
+        bigint id PK
+        bigint order_id FK
+        tinyint rating
+    }
+    SHOPPING_CART {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+    }
+    USER_FOLLOW {
+        bigint id PK
+        bigint follower_id FK
+        bigint followed_id FK
+    }
+    MESSAGE {
+        bigint id PK
+        bigint sender_id FK
+        bigint receiver_id FK
+    }
+    NOTIFICATION {
+        bigint id PK
+        bigint recipient_id FK
+        varchar content
+    }
+    ADMINISTRATOR {
+        bigint id PK
+        varchar username
+    }
+    AUDIT_LOG {
+        bigint id PK
+        bigint admin_id FK
+        varchar action
+    }
+
+    USER ||--o{ PRODUCT : "发布"
+    USER ||--o{ TRADE_ORDER : "购买"
+    USER ||--o{ TRADE_ORDER : "出售"
+    USER ||--o{ REVIEW : "发表"
+    USER ||--o{ SHOPPING_CART : "拥有"
+    USER ||--o{ MESSAGE : "发送"
+    USER ||--o{ MESSAGE : "接收"
+    USER ||--o{ NOTIFICATION : "接收"
+    USER }|..|{ USER_FOLLOW : "关注"
+    USER }|..|{ USER_FOLLOW : "被关注"
+    PRODUCT ||--|{ CATEGORY : "属于"
+    PRODUCT ||--o{ TRADE_ORDER : "包含"
+    PRODUCT ||--o{ SHOPPING_CART : "包含"
+    TRADE_ORDER ||--|| REVIEW : "产生"
+    ADMINISTRATOR ||--o{ AUDIT_LOG : "执行"
+
+4. 非功能性设计
+4.1. 性能设计
+●后端:
+○数据库连接: 强制使用HikariCP高性能连接池，配置合理的连接数。
+○SQL优化: 遵循《阿里巴巴Java开发手册》第五章的SQL规约，避免select *，建立合理的覆盖索引。对于超多分页场景（如商品列表），采用延迟关联优化：SELECT t1.* FROM product AS t1, (SELECT id FROM product WHERE ... LIMIT 10000, 20) AS t2 WHERE t1.id = t2.id。
+○异步处理: 对于发送通知、更新用户平均分等非核心、耗时操作，设计上预留异步处理能力。
+○缓存策略: 对商品分类、热门商品等变化频率低、访问频率高的数据，预留Manager层添加缓存（如Caffeine）的空间。
+●前端:
+○代码分割 (Code Splitting): 使用React Router和动态import()实现路由级别的代码分割，按需加载页面组件，减小初始包体积。
+○组件懒加载 (Lazy Loading): 对非首屏组件（如Modal、复杂的图表）使用React.lazy进行懒加载。
+○虚拟化列表 (Virtualization): 对于可能出现超长列表的场景（如消息历史），使用react-window等库来渲染，只渲染视口内的元素。
+○Memoization: 使用React.memo, useMemo, useCallback避免不必要的组件重渲染。
+4.2. 安全设计
+●后端:
+○认证凭证管理: 登录成功后，后端通过HTTP-only的Cookie设置会话ID。
+○权限过滤: 实现一个PermissionFilter，对需要登录和特定角色（如管理员）的接口进行统一拦截和校验。
+○水平权限: 在Service层对所有涉及用户私有数据的操作进行严格的权限校验。例如，OrderService.getOrderDetail(long orderId, long currentUserId)必须验证currentUserId是否为该订单的买家或卖家。
+○防SQL注入: DAO层强制使用JDBCTemplate的参数化查询 (?占位符)。
+○防XSS: 后端对入库数据进行基础过滤，前端在展示时进行彻底转义。
+○CSRF防护: 后端生成CSRF Token并存于Cookie中，前端通过Axios请求头（如X-CSRF-TOKEN）将其发回，后端进行验证。
+○文件上传: 严格校验上传文件的类型、大小和内容，防止恶意文件。
+●前端:
+○认证凭证处理: Axios将配置withCredentials: true来自动携带Cookie，前端代码无法直接访问该Cookie，增强安全性。
+○环境变量: 敏感信息（如API根路径）存储在.env文件中，不硬编码在代码里。
+○依赖安全: 定期使用npm audit或类似工具扫描前端依赖库的安全漏洞。
+4.3. 可靠性与日志设计
+●后端:
+○日志框架: 强制使用SLF4J作为日志门面，Logback作为实现。应用日志以JSON格式输出。
+○异常处理: 遵循分层规约。DAO层抛出DataAccessException。Service层记录详细错误日志。Web层设置全局异常处理器，返回统一错误响应。
+○健康检查: 提供/health接口，返回{"status": "UP"}。
+●前端:
+○错误边界 (Error Boundaries): 使用React的错误边界组件包裹主要功能区，防止单个组件的JS错误导致整个应用崩溃。
+○远程日志/监控: 集成Sentry、LogRocket等前端监控服务，捕获并上报生产环境中的用户端错误和性能数据。
+5. 部署架构
+5.1. 架构概述
+采用前后端分离的部署模式。
+1.前端应用:
+○构建: React项目通过Vite或CRA构建成一套静态文件（HTML, CSS, JS）。
+○部署: 将静态文件部署到Nginx或任何静态文件服务器。
+2.后端服务:
+○构建: Java项目通过Maven打包成.war文件。
+○部署: 将.war文件部署到Apache Tomcat容器中运行。
+3.网络配置 (Nginx):
+○Nginx作为反向代理服务器，统一对外提供服务。
+○监听80/443端口。
+○将所有/api/*开头的请求代理到后端Tomcat服务器（如http://localhost:8080）。
+○其他所有请求则返回前端React应用的index.html，由React Router处理前端路由。
+○此配置解决了跨域资源共享（CORS）问题。
+5.2. 部署图
+graph TD
+    User[用户] -- HTTPS --> Nginx
+
+    subgraph "服务器"
+        Nginx -- "静态文件" --> FileSystem["React静态文件<br>(/usr/share/nginx/html)"]
+        Nginx -- "反向代理 /api" --> Tomcat["Apache Tomcat<br>(运行后端WAR包)"]
+        Tomcat -- "JDBC" --> MySQL_DB[(MySQL数据库)]
+    end
+
+    User -- "访问 a.com/" --> Nginx
+    Nginx -- "返回 index.html" --> User
+    Browser -- "加载React App, 发起 a.com/api/users 请求" --> Nginx
+    Nginx -- "代理请求到 Tomcat" --> Tomcat
+    Tomcat -- "处理请求" --> MySQL_DB
+    MySQL_DB -- "返回数据" --> Tomcat
+    Tomcat -- "返回JSON" --> Nginx
+    Nginx -- "返回JSON给浏览器" --> Browser
+
+6. 前端组件化设计
+【说明】
+采用原子设计 (Atomic Design) 思想进行划分。
+6.1. 页面 (Pages)
+●HomePage.tsx: 首页
+●LoginPage.tsx: 登录页
+●RegisterPage.tsx: 注册页
+●ProductListPage.tsx: 商品列表/搜索结果页
+●ProductDetailPage.tsx: 商品详情页
+●ProductPublishPage.tsx: 商品发布/编辑页
+●CartPage.tsx: 购物车页
+●OrderListPage.tsx: 我的订单列表页
+●OrderDetailPage.tsx: 订单详情页
+●UserProfilePage.tsx: 用户个人主页
+●MessageCenterPage.tsx: 消息中心
+●AdminDashboardPage.tsx: (后台) 仪表盘
+●AdminProductReviewPage.tsx: (后台) 商品审核页
+●NotFoundPage.tsx: 404页面
+6.2. 模板 (Templates)
+●MainLayout.tsx: 包含页头、页脚和内容区的主要布局。
+●AdminLayout.tsx: 包含后台侧边栏和内容区的后台布局。
+6.3. 生物体 (Organisms)
+●Header.tsx: 网站顶部导航栏，包含Logo、搜索框、用户菜单。
+●Footer.tsx: 网站页脚。
+●ProductList.tsx: 商品卡片列表容器。
+●ProductForm.tsx: 商品发布/编辑表单。
+●OrderTable.tsx: 订单列表表格。
+●ReviewList.tsx: 评价列表。
+●AdminSidebar.tsx: 后台管理侧边导航。
+6.4. 分子 (Molecules)
+●ProductCard.tsx: 商品列表中的单个商品卡片。
+●SearchBar.tsx: 搜索框组件。
+●FilterPanel.tsx: 筛选面板（分类、价格区间）。
+●Pagination.tsx: 分页组件。
+●UserAvatarMenu.tsx: 用户头像下拉菜单。
+6.5. 原子 (Atoms)
+●Button.tsx: 基于MUI Button的自定义按钮。
+●Input.tsx: 基于MUI TextField的自定义输入框。
+●Logo.tsx: 网站Logo。
+●Spinner.tsx: 加载指示器。
+7. 附录
+A. 领域对象定义 (DTO / VO)
+A.1 DTO (Data Transfer Object) - 后端服务层接口
+●UserRegisterDTO: { username: string, password: string, confirmPassword: string, nickname: string }
+●UserLoginDTO: { username: string, password: string }
+●ProductPublishDTO: { title: string, description: string, price: number, categoryId: number, images: File[], action: 'SUBMIT_REVIEW' | 'SAVE_DRAFT' }
+●ProductUpdateDTO: { title?: string, description?: string, price?: number, categoryId?: number }
+●ProductQuery: { keyword?: string, categoryId?: number, minPrice?: number, maxPrice?: number, sortBy?: 'CREATE_TIME_DESC' | 'PRICE_ASC' | 'PRICE_DESC', page?: number, pageSize?: number }
+●OrderCreateDTO: { productIds: number[] }
+●ReviewCreateDTO: { rating: number, comment?: string }
+●MessageSendDTO: { receiverId: number, content: string, productId?: number }
+A.2 VO (View Object) - 后端响应 & 前端类型定义
+●UserVO: { userId: string, username: string, nickname: string, avatarUrl: string }
+●UserProfileVO: { user: UserVO, followerCount: number, averageRating: number, onSaleProducts: Page<ProductCardVO>, isFollowing: boolean }
+●ProductCardVO: { productId: string, title: string, mainImageUrl: string, price: number }
+●ProductDetailVO: { productId: string, title: string, description: string, imageUrls: string[], price: number, status: string, category: CategoryVO, seller: UserVO, reviews: Page<ReviewVO> }
+●CategoryVO: { categoryId: number, name: string }
+●CartVO: { items: CartItemVO[], totalPrice: number }
+●CartItemVO: { product: ProductCardVO, quantity: number }
+●OrderSummaryVO: { orderId: string, product: ProductCardVO, priceAtPurchase: number, status: string, createTime: string }
+●OrderDetailVO: OrderSummaryVO & { buyer: UserVO, seller: UserVO }
+●ReviewVO: { reviewId: string, user: UserVO, rating: number, comment: string, createTime: string }
+●ConversationVO: { conversationId: string, otherParty: UserVO, lastMessage: string, lastMessageTime: string, unreadCount: number }
+●MessageVO: { messageId: string, senderId: string, content: string, createTime: string }
+●NotificationVO: { notificationId: string, content: string, sourceType: string, sourceId: string, isRead: boolean, createTime: string }
+●Page<T>: { page: number, pageSize: number, total: number, list: T[] }
+B. 枚举定义
+B.1 UserStatus
+●ACTIVE (0): 正常
+●BANNED (1): 已封禁
+●MUTED (2): 已禁言
+B.2 ProductStatus
+●DRAFT (0): 草稿
+●PENDING_REVIEW (1): 待审核
+●ONSALE (2): 在售
+●LOCKED (3): 已锁定 (被下单)
+●SOLD (4): 已售出
+●REVIEW_FAILED (5): 审核失败
+●DELISTED (6): 已下架
+●DELETED (7): 已删除
+B.3 OrderStatus
+●AWAITING_PAYMENT (0): 待支付
+●AWAITING_SHIPPING (1): 待发货
+●SHIPPED (2): 已发货
+●COMPLETED (3): 已完成
+●CANCELLED (4): 已取消
+●RETURN_REQUESTED (5): 退货申请中
+●RETURNED (6): 已退货
+B.4 NotificationSourceType
+●ORDER (0): 订单相关
+●MESSAGE (1): 消息相关
+●REVIEW (2): 评价相关
+●SYSTEM (3): 系统通知
+C. 统一错误码
+错误码	宏观分类	场景	message (for dev)	userTip (for user)
+A0001	用户端错误	通用用户端错误	User-side error.	操作失败，请稍后重试。
+A0101	用户端错误	登录	Invalid username or password.	用户名或密码不正确。
+A0102	用户端错误	登录	Account is banned.	您的账户已被封禁。
+A0110	用户端错误	注册	Username already exists.	该用户名已被注册。
+A0201	用户端错误	参数校验	Invalid request parameter: {field}.	请求参数不正确。
+A0301	用户端错误	权限	No permission to access this resource.	您没有权限执行此操作。
+B0001	系统内部错误	通用系统错误	System execution error.	系统开小差了，请稍后重试。
+B0100	系统内部错误	数据库	Database operation failed.	系统繁忙，请稍后重试。
+C0001	第三方服务错误	通用外部错误	Third-party service error.	外部服务异常，请稍后重试。

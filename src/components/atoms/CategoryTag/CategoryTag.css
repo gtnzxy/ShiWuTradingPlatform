@@ -1,0 +1,39 @@
+.category-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.category-tag--small {
+  font-size: 12px;
+  padding: 2px 6px;
+}
+
+.category-tag--default {
+  font-size: 14px;
+  padding: 4px 8px;
+}
+
+.category-tag--large {
+  font-size: 16px;
+  padding: 6px 12px;
+}
+
+.category-tag--clickable {
+  cursor: pointer;
+}
+
+.category-tag--clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.category-tag__icon {
+  font-size: 1em;
+}
+
+.category-tag__name {
+  font-weight: 500;
+}

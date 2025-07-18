@@ -1,0 +1,98 @@
+/* 地址管理页面样式 */
+.address-manage-page {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.address-item {
+  padding: 0;
+}
+
+.address-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.address-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.address-card.default-address {
+  border-color: #faad14;
+  box-shadow: 0 4px 12px rgba(250, 173, 20, 0.2);
+}
+
+.address-card .ant-card-body {
+  padding: 20px;
+}
+
+.address-card .anticon {
+  color: #1890ff;
+  margin-right: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .address-manage-page {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .page-header .ant-btn {
+    width: 100%;
+  }
+  
+  .address-card .ant-card-body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header h3 {
+    font-size: 18px;
+    margin: 0;
+  }
+}
+
+/* 弹窗样式优化 */
+.ant-modal-body .ant-form {
+  margin-top: 20px;
+}
+
+/* 空状态样式 */
+.address-manage-page .ant-empty {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+}
+
+/* 按钮组样式 */
+.address-card .ant-space {
+  width: 100%;
+}
+
+.address-card .ant-btn {
+  border-radius: 4px;
+}
+
+/* Tag样式优化 */
+.address-card .ant-tag {
+  margin: 0;
+  border-radius: 12px;
+  font-size: 12px;
+}

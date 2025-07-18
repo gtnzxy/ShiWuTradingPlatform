@@ -1,0 +1,202 @@
+.home-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* 横幅区域 */
+.home-page__banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 80px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page__banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.home-page__banner-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.home-page__title {
+  color: white !important;
+  font-size: 48px !important;
+  font-weight: bold;
+  margin-bottom: 16px !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.home-page__subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 32px !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.home-page__actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home-page__actions .ant-btn {
+  height: 48px;
+  padding: 0 32px;
+  font-size: 16px;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.home-page__actions .ant-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 内容区域 */
+.home-page__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.home-page__section {
+  margin-bottom: 64px;
+}
+
+.home-page__section-title {
+  color: #333 !important;
+  margin-bottom: 24px !important;
+  font-size: 28px !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-page__section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.home-page__section-header .ant-btn-link {
+  font-size: 16px;
+  color: #1890ff;
+}
+
+/* 分类卡片 */
+.home-page__category-card {
+  height: 160px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.home-page__category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.home-page__category-icon {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background: linear-gradient(45deg, #f0f0f0, #fafafa);
+}
+
+.home-page__category-card .ant-card-meta-title {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.home-page__category-card .ant-card-meta-description {
+  text-align: center;
+  color: #666;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .home-page__banner {
+    padding: 60px 16px;
+  }
+
+  .home-page__title {
+    font-size: 32px !important;
+  }
+
+  .home-page__subtitle {
+    font-size: 16px;
+  }
+
+  .home-page__actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .home-page__actions .ant-btn {
+    width: 240px;
+    margin-bottom: 8px;
+  }
+
+  .home-page__content {
+    padding: 32px 16px;
+  }
+
+  .home-page__section {
+    margin-bottom: 48px;
+  }
+
+  .home-page__section-title {
+    font-size: 24px !important;
+  }
+
+  .home-page__section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .home-page__category-card {
+    height: 140px;
+  }
+
+  .home-page__category-icon {
+    height: 60px;
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page__banner {
+    padding: 40px 12px;
+  }
+
+  .home-page__title {
+    font-size: 28px !important;
+  }
+
+  .home-page__content {
+    padding: 24px 12px;
+  }
+
+  .home-page__section-title {
+    font-size: 20px !important;
+  }
+}
