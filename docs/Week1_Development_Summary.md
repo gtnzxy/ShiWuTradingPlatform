@@ -1,8 +1,8 @@
-# 校园二手交易平台 - 第一周开发总结报告
+# 拾物 - 第一周开发总结报告
 
 ## 📋 项目概览
 
-**项目名称**: 校园二手交易平台（Second-Hand Marketplace）  
+**项目名称**: 拾物（Shiwu Marketplace）  
 **开发周期**: 第1周（项目基础搭建）  
 **技术栈**: React 19 + Ant Design 5 + React Router 7 + Mock Service Worker  
 **完成时间**: 2025年7月18日  

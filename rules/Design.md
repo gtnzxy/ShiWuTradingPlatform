@@ -1,8 +1,8 @@
-# **Campus Second-Hand Trading Platform \- General Design Document (v5.0 \- React Architecture \- Complete Final Version)1\. System Overall Design**
+# **拾物 \- 总体设计文档 (v5.0 \- React架构 \- 完整最终版本)1\. 系统整体设计**
 
-### **1.1. Project Overview**
+### **1.1. 项目概述**
 
-This project aims to develop a C2C second-hand trading platform named "Shiwu" (Project Identifier: Campus Second-Hand Trading Platform). The system will strictly adhere to the 19 core use cases defined in the *Software Requirements Specification (SRS) v8.0* and will be developed based on the separated frontend-backend technology stack specified in the *Technology Stack v2.0* document.
+本项目旨在开发一个名为"拾物"的C2C二手交易平台。系统将严格遵循《软件需求规格说明书 (SRS) v8.0》中定义的19个核心用例，并基于《技术栈 v2.0》文档中规定的前后端分离技术栈进行开发。
 
 ### **1.2. System Architecture**
 

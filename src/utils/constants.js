@@ -1,7 +1,7 @@
 // 应用常量配置
 export const APP_CONFIG = {
   // 应用信息
-  APP_NAME: '校园二手交易平台',
+  APP_NAME: '拾物',
   VERSION: '1.0.0',
   
   // API配置

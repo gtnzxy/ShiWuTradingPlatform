@@ -42,7 +42,7 @@ const AuthLayout = () => {
               color: '#666',
               fontSize: '14px'
             }}>
-              欢迎来到校园二手交易平台
+              欢迎来到拾物
             </div>
           </div>
 
@@ -56,7 +56,7 @@ const AuthLayout = () => {
             color: '#999',
             fontSize: '12px'
           }}>
-            © 2025 校园二手交易平台. All rights reserved.
+            © 2025 拾物. All rights reserved.
           </div>
         </Card>
       </Content>

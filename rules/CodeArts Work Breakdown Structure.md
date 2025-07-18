@@ -1,4 +1,4 @@
-### **Campus Second-hand Trading Platform \- Work Breakdown Structure (WBS)**
+### **拾物 \- 工作分解结构 (WBS)**
 
 This document provides a comprehensive work breakdown for the project, structured into Epics, Features, User Stories, and Tasks, based on the provided Software Requirements Specification (SRS).
 

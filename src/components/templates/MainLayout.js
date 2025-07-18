@@ -176,7 +176,7 @@ const MainLayout = () => {
       </Content>
 
       <Footer style={{ textAlign: 'center', background: '#f5f5f5' }}>
-        校园二手交易平台 ©2025 Created by Campus Team
+        拾物 ©2025 Created by Shiwu Team
       </Footer>
     </Layout>
   );
