@@ -164,13 +164,13 @@ export const NotificationProvider = ({ children }) => {
       };
       
       const data = await notificationService.getNotifications(queryParams);
-      dispatch({ type: ActionTypes.SET_NOTIFICATIONS, payload: data.items });
-      dispatch({ 
-        type: ActionTypes.SET_PAGINATION, 
-        payload: { 
-          page: data.page,
-          pageSize: data.pageSize,
-          total: data.total
+      dispatch({ type: ActionTypes.SET_NOTIFICATIONS, payload: data.data || [] });
+      dispatch({
+        type: ActionTypes.SET_PAGINATION,
+        payload: {
+          page: data.page || 1,
+          pageSize: data.pageSize || 20,
+          total: data.total || 0
         }
       });
       return data;
@@ -181,28 +181,43 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [state.pagination.page, state.pagination.pageSize, state.filters.type, state.filters.unreadOnly]);
 
+  // 获取未读数量
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const data = await notificationService.getUnreadCount();
+      dispatch({ type: ActionTypes.SET_UNREAD_COUNT, payload: data.count });
+      return data;
+    } catch (error) {
+      console.error('获取未读数量失败:', error);
+    }
+  }, []);
+
   // 标记单个通知已读
-  const markAsRead = async (id) => {
+  const markAsRead = useCallback(async (id) => {
     try {
       await notificationService.markAsRead(id);
       dispatch({ type: ActionTypes.MARK_AS_READ, payload: id });
+      // 重新获取未读数量以保持同步
+      fetchUnreadCount();
     } catch (error) {
       antdMessage.error(error.message);
       throw error;
     }
-  };
+  }, [fetchUnreadCount]);
 
   // 标记所有通知已读
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
       dispatch({ type: ActionTypes.MARK_ALL_AS_READ });
+      // 重新获取未读数量以保持同步
+      fetchUnreadCount();
       antdMessage.success('所有通知已标记为已读');
     } catch (error) {
       antdMessage.error(error.message);
       throw error;
     }
-  };
+  }, [fetchUnreadCount]);
 
   // 删除通知
   const deleteNotification = async (id) => {
@@ -216,16 +231,7 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  // 获取未读数量
-  const fetchUnreadCount = async () => {
-    try {
-      const data = await notificationService.getUnreadCount();
-      dispatch({ type: ActionTypes.SET_UNREAD_COUNT, payload: data.count });
-      return data;
-    } catch (error) {
-      console.error('获取未读数量失败:', error);
-    }
-  };
+
 
   // 获取通知设置
   const fetchSettings = async () => {
@@ -276,7 +282,7 @@ export const NotificationProvider = ({ children }) => {
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 30000); // 每30秒更新一次
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUnreadCount]);
 
   // 初始化设置
   useEffect(() => {

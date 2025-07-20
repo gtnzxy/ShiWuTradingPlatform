@@ -52,6 +52,44 @@ export const STATUS_TEXTS = {
 export const productService = {
   // 获取商品列表
   getProducts: async (params = {}) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+
+      // 合并所有用户的商品
+      let allProducts = [];
+      for (const userId in mockUserProducts) {
+        const userProducts = mockUserProducts[userId].map(product => ({
+          ...product,
+          categoryName: CATEGORY_TEXTS[product.category] || '其他',
+          seller: {
+            id: parseInt(userId),
+            nickname: `用户${userId}`,
+            avatar: `https://via.placeholder.com/40x40/87CEEB/000000?text=U${userId}`,
+            rating: 4.5,
+            location: '北京市'
+          }
+        }));
+        allProducts = allProducts.concat(userProducts);
+      }
+
+      // 按创建时间排序（最新的在前）
+      allProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // 分页处理
+      const page = params.page || 1;
+      const pageSize = params.pageSize || 20;
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const paginatedData = allProducts.slice(start, end);
+
+      return {
+        data: paginatedData,
+        total: allProducts.length,
+        page,
+        pageSize
+      };
+    }
+
     try {
       const response = await apiClient.get('/products', { params });
       return response.data;
@@ -62,6 +100,35 @@ export const productService = {
 
   // 获取商品详情
   getProductById: async (productId) => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+
+      // 在所有用户的商品中查找
+      for (const userId in mockUserProducts) {
+        const userProducts = mockUserProducts[userId];
+        const product = userProducts.find(p => p.id === parseInt(productId));
+        if (product) {
+          return {
+            ...product,
+            isOwner: parseInt(userId) === 1, // 假设当前用户ID为1
+            isFavorited: false,
+            viewCount: Math.floor(Math.random() * 100) + 1,
+            categoryName: CATEGORY_TEXTS[product.category] || '其他',
+            seller: {
+              id: parseInt(userId),
+              nickname: `用户${userId}`,
+              avatar: `https://via.placeholder.com/40x40/87CEEB/000000?text=U${userId}`,
+              rating: 4.5,
+              location: '北京市'
+            }
+          };
+        }
+      }
+
+      // 如果没找到，抛出错误
+      throw new Error('商品不存在');
+    }
+
     try {
       const response = await apiClient.get(`/products/${productId}`);
       return response.data;
@@ -177,7 +244,7 @@ export const productService = {
     }
     
     try {
-      const response = await apiClient.get('/api/v1/categories');
+      const response = await apiClient.get('/categories');
       return response.data;
     } catch (error) {
       throw new Error(`获取分类列表失败: ${error.message}`);

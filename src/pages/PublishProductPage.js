@@ -15,23 +15,25 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Form, 
-  Input, 
-  InputNumber, 
-  Select, 
-  Upload, 
-  Button, 
-  Space, 
-  Typography, 
-  Row, 
+import {
+  Card,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Upload,
+  Button,
+  Space,
+  Typography,
+  Row,
   Col,
-  message
+  message,
+  Empty
 } from 'antd';
-import { 
+import {
   ArrowLeftOutlined,
-  CameraOutlined 
+  CameraOutlined,
+  PlusOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContextNew';
@@ -82,11 +84,8 @@ const PublishProductPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       loadCategories();
-    } else {
-      // 未登录重定向
-      navigate('/auth/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
   // 处理图片上传
   const handleImageChange = ({ fileList: newFileList }) => {
@@ -170,9 +169,20 @@ const PublishProductPage = () => {
     }
   };
 
-  // 未登录时显示加载状态
+  // 未登录状态
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+        <Empty
+          image={<PlusOutlined style={{ fontSize: '64px', color: '#ccc' }} />}
+          description="请先登录发布商品"
+        >
+          <Button type="primary" onClick={() => navigate('/auth/login')}>
+            立即登录
+          </Button>
+        </Empty>
+      </div>
+    );
   }
 
   return (

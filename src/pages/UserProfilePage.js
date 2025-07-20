@@ -42,7 +42,7 @@ const { TabPane } = Tabs;
 const UserProfilePage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isAuthenticated } = useAuth();
   
   const [userProfile, setUserProfile] = useState(null);
   const [userStats, setUserStats] = useState(null);
@@ -172,6 +172,22 @@ const UserProfilePage = () => {
     fetchUserProducts(); // 默认加载商品数据
   }, [userId]);
 
+  // 如果是查看自己的主页但未登录，显示登录提示
+  if (isOwnProfile && !isAuthenticated) {
+    return (
+      <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+        <Empty
+          image={<UserOutlined style={{ fontSize: '64px', color: '#ccc' }} />}
+          description="请先登录查看个人主页"
+        >
+          <Button type="primary" onClick={() => navigate('/auth/login')}>
+            立即登录
+          </Button>
+        </Empty>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px 0' }}>
@@ -182,7 +198,7 @@ const UserProfilePage = () => {
 
   if (!userProfile) {
     return (
-      <Empty 
+      <Empty
         description="用户不存在"
         image={Empty.PRESENTED_IMAGE_SIMPLE}
       />

@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Tabs, 
-  Form, 
-  Input, 
-  Button, 
-  Avatar, 
-  Upload, 
-  Select, 
-  DatePicker, 
-  Switch, 
-  Row, 
-  Col, 
-  message, 
+import {
+  Card,
+  Tabs,
+  Form,
+  Input,
+  Button,
+  Avatar,
+  Upload,
+  Select,
+  DatePicker,
+  Switch,
+  Row,
+  Col,
+  message,
   Modal,
   List,
   Tag,
   Space,
   Divider,
-  Typography
+  Typography,
+  Empty
 } from 'antd';
 import { 
   UserOutlined, 
@@ -74,11 +75,11 @@ const UserSettingsPage = () => {
 
       // 获取隐私设置
       const privacyData = await userService.getPrivacySettings();
-      setPrivacySettings(privacyData);
+      setPrivacySettings(privacyData.data || {});
 
       // 获取安全设置
       const securityData = await userService.getSecuritySettings();
-      setSecuritySettings(securityData);
+      setSecuritySettings(securityData.data || {});
     } catch (error) {
       message.error('获取用户信息失败');
     } finally {
@@ -90,7 +91,7 @@ const UserSettingsPage = () => {
   const fetchLoginDevices = async () => {
     try {
       const devices = await userService.getLoginDevices();
-      setLoginDevices(devices);
+      setLoginDevices(devices.data || []);
     } catch (error) {
       console.error('获取登录设备失败:', error);
     }
@@ -100,7 +101,7 @@ const UserSettingsPage = () => {
   const fetchActivityLog = async () => {
     try {
       const log = await userService.getActivityLog({ limit: 10 });
-      setActivityLog(log.items || []);
+      setActivityLog(log.data || []);
     } catch (error) {
       console.error('获取活动日志失败:', error);
     }
@@ -230,17 +231,28 @@ const UserSettingsPage = () => {
   };
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
+    if (user) {
+      fetchUserProfile();
+      fetchLoginDevices();
+      fetchActivityLog();
     }
-    
-    fetchUserProfile();
-    fetchLoginDevices();
-    fetchActivityLog();
   }, [user]);
 
-  if (!user) return null;
+  // 未登录状态
+  if (!user) {
+    return (
+      <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+        <Empty
+          image={<SecurityScanOutlined style={{ fontSize: '64px', color: '#ccc' }} />}
+          description="请先登录查看账户设置"
+        >
+          <Button type="primary" onClick={() => navigate('/auth/login')}>
+            立即登录
+          </Button>
+        </Empty>
+      </div>
+    );
+  }
 
   const tabItems = [
     {

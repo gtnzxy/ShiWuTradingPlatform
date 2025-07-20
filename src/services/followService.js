@@ -52,7 +52,9 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.post(`/api/users/${userId}/follow`);
+      const response = await apiClient.post(`/users/${userId}/followers`, {
+        action: 'FOLLOW'
+      });
       return response.data;
     } catch (error) {
       throw new Error(`关注用户失败: ${error.message}`);
@@ -95,7 +97,9 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.delete(`/api/users/${userId}/follow`);
+      const response = await apiClient.post(`/users/${userId}/followers`, {
+        action: 'UNFOLLOW'
+      });
       return response.data;
     } catch (error) {
       throw new Error(`取消关注失败: ${error.message}`);
@@ -120,7 +124,7 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.get(`/api/users/${userId}/follow-status`);
+      const response = await apiClient.get(`/users/${userId}/follow-status`);
       return response.data;
     } catch (error) {
       throw new Error(`检查关注状态失败: ${error.message}`);
@@ -158,7 +162,7 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.get('/api/users/following', { params });
+      const response = await apiClient.get('/users/following', { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取关注列表失败: ${error.message}`);
@@ -204,7 +208,7 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.get('/api/users/followers', { params });
+      const response = await apiClient.get('/users/followers', { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取粉丝列表失败: ${error.message}`);
@@ -219,7 +223,7 @@ const followService = {
    */
   getUserFollowing: async (userId, params = {}) => {
     try {
-      const response = await apiClient.get(`/api/users/${userId}/following`, { params });
+      const response = await apiClient.get(`/users/${userId}/following`, { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取用户关注列表失败: ${error.message}`);
@@ -234,7 +238,7 @@ const followService = {
    */
   getUserFollowers: async (userId, params = {}) => {
     try {
-      const response = await apiClient.get(`/api/users/${userId}/followers`, { params });
+      const response = await apiClient.get(`/users/${userId}/followers`, { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取用户粉丝列表失败: ${error.message}`);
@@ -248,7 +252,7 @@ const followService = {
    */
   getFollowStats: async (userId) => {
     try {
-      const url = userId ? `/api/users/${userId}/follow-stats` : '/api/users/follow-stats';
+      const url = userId ? `/users/${userId}/follow-stats` : '/users/follow-stats';
       const response = await apiClient.get(url);
       return response.data;
     } catch (error) {
@@ -265,7 +269,7 @@ const followService = {
    */
   getFollowingActivities: async (params = {}) => {
     try {
-      const response = await apiClient.get('/api/users/following-activities', { params });
+      const response = await apiClient.get('/users/following-activities', { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取关注动态失败: ${error.message}`);
@@ -279,7 +283,7 @@ const followService = {
    */
   batchFollow: async (userIds) => {
     try {
-      const response = await apiClient.post('/api/users/batch-follow', { userIds });
+      const response = await apiClient.post('/users/batch-follow', { userIds });
       return response.data;
     } catch (error) {
       throw new Error(`批量关注失败: ${error.message}`);
@@ -293,7 +297,7 @@ const followService = {
    */
   batchUnfollow: async (userIds) => {
     try {
-      const response = await apiClient.post('/api/users/batch-unfollow', { userIds });
+      const response = await apiClient.post('/users/batch-unfollow', { userIds });
       return response.data;
     } catch (error) {
       throw new Error(`批量取消关注失败: ${error.message}`);

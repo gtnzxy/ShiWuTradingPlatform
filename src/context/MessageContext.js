@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import messageService from '../services/messageService';
 import { message as antdMessage } from 'antd';
 
@@ -150,28 +150,28 @@ export const MessageProvider = ({ children }) => {
   const [state, dispatch] = useReducer(messageReducer, initialState);
 
   // 获取会话列表
-  const fetchConversations = async (params = {}) => {
+  const fetchConversations = useCallback(async (params = {}) => {
     try {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
       const data = await messageService.getConversations(params);
-      dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: data.items });
+      dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: data.data || [] });
       return data;
     } catch (error) {
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
       antdMessage.error(error.message);
       throw error;
     }
-  };
+  }, []);
 
   // 获取消息历史
-  const fetchMessages = async (conversationId, params = {}) => {
+  const fetchMessages = useCallback(async (conversationId, params = {}) => {
     try {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
       const data = await messageService.getMessages(conversationId, params);
-      dispatch({ 
-        type: ActionTypes.SET_MESSAGES, 
+      dispatch({
+        type: ActionTypes.SET_MESSAGES,
         conversationId,
-        payload: data.items 
+        payload: data.data || []
       });
       return data;
     } catch (error) {
@@ -179,17 +179,17 @@ export const MessageProvider = ({ children }) => {
       antdMessage.error(error.message);
       throw error;
     }
-  };
+  }, []);
 
   // 发送消息
-  const sendMessage = async (messageData) => {
+  const sendMessage = useCallback(async (messageData) => {
     try {
       const data = await messageService.sendMessage(messageData);
-      dispatch({ 
-        type: ActionTypes.ADD_MESSAGE, 
-        payload: { 
-          conversationId: data.conversationId, 
-          message: data 
+      dispatch({
+        type: ActionTypes.ADD_MESSAGE,
+        payload: {
+          conversationId: data.conversationId,
+          message: data
         }
       });
       return data;
@@ -197,17 +197,30 @@ export const MessageProvider = ({ children }) => {
       antdMessage.error(error.message);
       throw error;
     }
-  };
+  }, []);
+
+  // 获取未读数量
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const data = await messageService.getUnreadCount();
+      dispatch({ type: ActionTypes.SET_UNREAD_COUNT, payload: data.count });
+      return data;
+    } catch (error) {
+      console.error('获取未读数量失败:', error);
+    }
+  }, []);
 
   // 标记会话已读
-  const markConversationAsRead = async (conversationId) => {
+  const markConversationAsRead = useCallback(async (conversationId) => {
     try {
       await messageService.markAsRead(conversationId);
       dispatch({ type: ActionTypes.MARK_CONVERSATION_READ, payload: conversationId });
+      // 重新获取未读数量以保持同步
+      fetchUnreadCount();
     } catch (error) {
       antdMessage.error(error.message);
     }
-  };
+  }, [fetchUnreadCount]);
 
   // 删除会话
   const deleteConversation = async (conversationId) => {
@@ -246,23 +259,14 @@ export const MessageProvider = ({ children }) => {
     dispatch({ type: ActionTypes.CLEAR_SEARCH });
   };
 
-  // 获取未读数量
-  const fetchUnreadCount = async () => {
-    try {
-      const data = await messageService.getUnreadCount();
-      dispatch({ type: ActionTypes.SET_UNREAD_COUNT, payload: data.count });
-      return data;
-    } catch (error) {
-      console.error('获取未读数量失败:', error);
-    }
-  };
+
 
   // 定期更新未读数量
   useEffect(() => {
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 30000); // 每30秒更新一次
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUnreadCount]);
 
   // Context值
   const value = {

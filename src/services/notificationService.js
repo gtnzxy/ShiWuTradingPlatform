@@ -45,7 +45,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.get('/api/notifications', { params });
+      const response = await apiClient.get('/notifications', { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取通知列表失败: ${error.message}`);
@@ -68,7 +68,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.put(`/api/notifications/${id}/read`);
+      const response = await apiClient.put(`/notifications/${id}/read-status`);
       return response.data;
     } catch (error) {
       throw new Error(`标记通知已读失败: ${error.message}`);
@@ -93,7 +93,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.put('/api/notifications/batch-read', { ids });
+      const response = await apiClient.put('/notifications/batch-read', { ids });
       return response.data;
     } catch (error) {
       throw new Error(`批量标记已读失败: ${error.message}`);
@@ -114,7 +114,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.put('/api/notifications/read-all');
+      const response = await apiClient.put('/notifications/read-all');
       return response.data;
     } catch (error) {
       throw new Error(`标记全部已读失败: ${error.message}`);
@@ -137,7 +137,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.delete(`/api/notifications/${id}`);
+      const response = await apiClient.delete(`/notifications/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(`删除通知失败: ${error.message}`);
@@ -156,7 +156,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.get('/api/notifications/unread-count');
+      const response = await apiClient.get('/notifications/unread-count');
       return response.data;
     } catch (error) {
       throw new Error(`获取未读数量失败: ${error.message}`);
@@ -193,7 +193,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.get('/api/notifications/settings');
+      const response = await apiClient.get('/notifications/settings');
       return response.data;
     } catch (error) {
       throw new Error(`获取通知设置失败: ${error.message}`);
@@ -213,7 +213,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.put('/api/notifications/settings', settings);
+      const response = await apiClient.put('/notifications/settings', settings);
       return response.data;
     } catch (error) {
       throw new Error(`更新通知设置失败: ${error.message}`);

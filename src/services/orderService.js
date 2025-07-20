@@ -18,6 +18,29 @@
  */
 
 import apiClient from './api';
+import { mockUserProducts, simulateDelay } from '../utils/mockData';
+
+// 开发环境使用Mock数据
+const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+
+// Mock订单数据
+let mockOrders = [
+  {
+    id: 1,
+    buyerId: 1,
+    sellerId: 2,
+    productId: 1,
+    status: 'AWAITING_PAYMENT',
+    totalAmount: 1299.00,
+    createdAt: new Date(Date.now() - 86400000).toISOString(), // 1天前
+    updatedAt: new Date(Date.now() - 86400000).toISOString(),
+    shippingAddress: {
+      name: '张三',
+      phone: '13800138001',
+      address: '北京市朝阳区xxx街道xxx号'
+    }
+  }
+];
 
 /**
  * 订单状态枚举
@@ -50,6 +73,60 @@ export const orderService = {
    * @returns {Promise<Object>} 响应数据 { orderIds: string[] }
    */
   async createOrder({ productIds }) {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(500);
+
+      const orderIds = [];
+
+      // 为每个商品创建一个订单
+      for (const productId of productIds) {
+        // 查找商品信息
+        let product = null;
+        let sellerId = null;
+
+        for (const userId in mockUserProducts) {
+          const userProducts = mockUserProducts[userId];
+          const foundProduct = userProducts.find(p => p.id === productId);
+          if (foundProduct) {
+            product = foundProduct;
+            sellerId = parseInt(userId);
+            break;
+          }
+        }
+
+        if (!product) {
+          throw new Error(`商品 ${productId} 不存在`);
+        }
+
+        // 创建订单
+        const newOrder = {
+          id: Date.now() + Math.random(),
+          buyerId: 1, // 假设当前用户ID为1
+          sellerId,
+          productId,
+          status: 'AWAITING_PAYMENT',
+          totalAmount: parseFloat(product.price),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          shippingAddress: {
+            name: '张三',
+            phone: '13800138001',
+            address: '北京市朝阳区xxx街道xxx号'
+          }
+        };
+
+        mockOrders.push(newOrder);
+        orderIds.push(newOrder.id.toString());
+      }
+
+      return {
+        success: true,
+        data: {
+          orderIds
+        }
+      };
+    }
+
     try {
       const response = await apiClient.post('/orders', {
         product_ids: productIds // 使用snake_case命名
@@ -71,13 +148,74 @@ export const orderService = {
    * @returns {Promise<Object>} 分页的订单摘要列表
    */
   async getOrderList({ role, status, page = 1, pageSize = 20 }) {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(400);
+
+      const currentUserId = 1; // 假设当前用户ID为1
+
+      // 根据角色筛选订单
+      let filteredOrders = mockOrders.filter(order => {
+        if (role === 'BUYER') {
+          return order.buyerId === currentUserId;
+        } else if (role === 'SELLER') {
+          return order.sellerId === currentUserId;
+        }
+        return false;
+      });
+
+      // 根据状态筛选
+      if (status) {
+        filteredOrders = filteredOrders.filter(order => order.status === status);
+      }
+
+      // 分页处理
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const paginatedOrders = filteredOrders.slice(start, end);
+
+      // 添加商品信息
+      const ordersWithDetails = paginatedOrders.map(order => {
+        // 查找商品信息
+        let product = null;
+        for (const userId in mockUserProducts) {
+          const userProducts = mockUserProducts[userId];
+          const foundProduct = userProducts.find(p => p.id === order.productId);
+          if (foundProduct) {
+            product = foundProduct;
+            break;
+          }
+        }
+
+        return {
+          ...order,
+          product: product ? {
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            images: product.images,
+            category: product.category
+          } : null
+        };
+      });
+
+      return {
+        success: true,
+        data: {
+          items: ordersWithDetails,
+          total: filteredOrders.length,
+          page,
+          pageSize
+        }
+      };
+    }
+
     try {
       const params = {
         role,
         page,
         page_size: pageSize // 使用snake_case命名
       };
-      
+
       if (status) {
         params.status = status;
       }
@@ -96,6 +234,53 @@ export const orderService = {
    * @returns {Promise<Object>} 订单详情 OrderDetailVO
    */
   async getOrderDetail(orderId) {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(300);
+
+      // 查找订单
+      const order = mockOrders.find(o => o.id.toString() === orderId.toString());
+      if (!order) {
+        throw new Error('订单不存在');
+      }
+
+      // 查找商品信息
+      let product = null;
+      for (const userId in mockUserProducts) {
+        const userProducts = mockUserProducts[userId];
+        const foundProduct = userProducts.find(p => p.id === order.productId);
+        if (foundProduct) {
+          product = foundProduct;
+          break;
+        }
+      }
+
+      return {
+        success: true,
+        data: {
+          ...order,
+          product: product ? {
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            images: product.images,
+            category: product.category,
+            condition: product.condition,
+            description: product.description
+          } : null,
+          buyer: {
+            id: order.buyerId,
+            nickname: `用户${order.buyerId}`,
+            avatar: `https://via.placeholder.com/40x40/87CEEB/000000?text=U${order.buyerId}`
+          },
+          seller: {
+            id: order.sellerId,
+            nickname: `用户${order.sellerId}`,
+            avatar: `https://via.placeholder.com/40x40/87CEEB/000000?text=U${order.sellerId}`
+          }
+        }
+      };
+    }
+
     try {
       const response = await apiClient.get(`/orders/${orderId}`);
       return response.data;

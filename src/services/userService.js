@@ -44,7 +44,7 @@ export const userService = {
       return { data: user };
     }
     
-    const response = await apiClient.get(`/users/${userId}/public-profile`);
+    const response = await apiClient.get(`/users/${userId}`);
     return response.data;
   },
 

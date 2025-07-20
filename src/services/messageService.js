@@ -29,7 +29,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.get('/api/messages/conversations', { params });
+      const response = await apiClient.get('/messages/conversations', { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取会话列表失败: ${error.message}`);
@@ -55,7 +55,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.get(`/api/messages/conversations/${conversationId}`, { params });
+      const response = await apiClient.get(`/messages/conversations/${conversationId}`, { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取消息历史失败: ${error.message}`);
@@ -103,7 +103,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.post('/api/messages', data);
+      const response = await apiClient.post('/messages', data);
       return response.data;
     } catch (error) {
       throw new Error(`发送消息失败: ${error.message}`);
@@ -136,7 +136,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.put(`/api/messages/conversations/${conversationId}/read`);
+      const response = await apiClient.put(`/messages/conversations/${conversationId}/read`);
       return response.data;
     } catch (error) {
       throw new Error(`标记已读失败: ${error.message}`);
@@ -162,7 +162,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.delete(`/api/messages/conversations/${conversationId}`);
+      const response = await apiClient.delete(`/messages/conversations/${conversationId}`);
       return response.data;
     } catch (error) {
       throw new Error(`删除会话失败: ${error.message}`);
@@ -205,7 +205,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.get('/api/messages/search', { params });
+      const response = await apiClient.get('/messages/search', { params });
       return response.data;
     } catch (error) {
       throw new Error(`搜索消息失败: ${error.message}`);
@@ -227,7 +227,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.get('/api/messages/unread-count');
+      const response = await apiClient.get('/messages/unread-count');
       return response.data;
     } catch (error) {
       throw new Error(`获取未读数量失败: ${error.message}`);
@@ -259,7 +259,7 @@ const messageService = {
       formData.append('receiverId', data.receiverId);
       formData.append('file', data.file);
       
-      const response = await apiClient.post('/api/messages/image', formData, {
+      const response = await apiClient.post('/messages/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -291,7 +291,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.post('/api/messages/share-product', data);
+      const response = await apiClient.post('/messages/share-product', data);
       return response.data;
     } catch (error) {
       throw new Error(`分享商品失败: ${error.message}`);

@@ -67,10 +67,10 @@ const MessageCenterPage = () => {
       return;
     }
     
-    const filtered = conversations.filter(conv => 
+    const filtered = conversations.filter(conv =>
       conv.otherUser?.nickname?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       conv.otherUser?.username?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      conv.lastMessage?.toLowerCase().includes(searchKeyword.toLowerCase())
+      (conv.lastMessage?.content || conv.lastMessage || '')?.toLowerCase().includes(searchKeyword.toLowerCase())
     );
     setFilteredConversations(filtered);
   }, [searchKeyword, conversations]);
@@ -161,14 +161,14 @@ const MessageCenterPage = () => {
       navigate('/login');
       return;
     }
-    
+
     fetchConversations();
   }, [user, navigate, fetchConversations]);
 
   // 搜索关键词变化时过滤会话
   useEffect(() => {
     filterConversations();
-  }, [filterConversations]);
+  }, [searchKeyword, conversations]);
 
   // 消息变化时滚动到底部
   useEffect(() => {
@@ -254,7 +254,7 @@ const MessageCenterPage = () => {
                         description={
                           <div className="last-message">
                             <Text ellipsis className={conversation.unreadCount > 0 ? 'unread-text' : ''}>
-                              {conversation.lastMessage || '暂无消息'}
+                              {conversation.lastMessage?.content || conversation.lastMessage || '暂无消息'}
                             </Text>
                           </div>
                         }

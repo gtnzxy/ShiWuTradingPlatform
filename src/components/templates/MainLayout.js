@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu, Badge, Dropdown, Space, Avatar } from 'antd';
-import { 
-  HomeOutlined, 
-  ShopOutlined, 
-  ShoppingCartOutlined, 
+import { Layout, Menu, Badge, Dropdown, Space, Avatar, Button } from 'antd';
+import {
+  HomeOutlined,
+  ShopOutlined,
+  ShoppingCartOutlined,
   PlusOutlined,
   UnorderedListOutlined,
   MessageOutlined,
@@ -16,6 +16,8 @@ import {
 import Logo from '../atoms/Logo';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContextNew';
+import { useMessage } from '../../context/MessageContext';
+import { useNotification } from '../../context/NotificationContext';
 
 const { Header, Content, Footer } = Layout;
 
@@ -28,9 +30,9 @@ const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItems } = useCart();
-  const { logout } = useAuth(); // eslint-disable-line no-unused-vars
-  const [messageCount] = useState(5); // 示例消息数量
-  const [notificationCount] = useState(2); // 示例通知数量
+  const { logout, isAuthenticated, user } = useAuth();
+  const { unreadCount: messageUnreadCount } = useMessage();
+  const { unreadCount: notificationUnreadCount } = useNotification();
 
   // 顶部导航菜单项
   const menuItems = [
@@ -72,7 +74,8 @@ const MainLayout = () => {
     {
       key: 'settings',
       icon: <SettingOutlined />,
-      label: '设置'
+      label: '设置',
+      onClick: () => navigate('/settings')
     },
     {
       type: 'divider'
@@ -136,31 +139,56 @@ const MainLayout = () => {
           </Badge>
 
           {/* 消息 */}
-          <Badge count={messageCount} size="small">
-            <MessageOutlined 
+          <Badge count={messageUnreadCount} size="small">
+            <MessageOutlined
               style={{ fontSize: '18px', cursor: 'pointer' }}
               onClick={() => navigate('/messages')}
             />
           </Badge>
 
           {/* 通知 */}
-          <Badge count={notificationCount} size="small">
-            <BellOutlined 
+          <Badge count={notificationUnreadCount} size="small">
+            <BellOutlined
               style={{ fontSize: '18px', cursor: 'pointer' }}
               onClick={() => navigate('/notifications')}
             />
           </Badge>
 
           {/* 用户头像和菜单 */}
-          <Dropdown
-            menu={{ items: userMenuItems }}
-            placement="bottomRight"
-            arrow
-          >
-            <div style={{ cursor: 'pointer' }}>
-              <Avatar size="small" icon={<UserOutlined />} />
-            </div>
-          </Dropdown>
+          {isAuthenticated ? (
+            <Dropdown
+              menu={{ items: userMenuItems }}
+              placement="bottomRight"
+              arrow
+            >
+              <div style={{ cursor: 'pointer' }}>
+                <Avatar
+                  size="small"
+                  src={user?.avatar}
+                  icon={<UserOutlined />}
+                />
+                <span style={{ marginLeft: '8px', color: '#333' }}>
+                  {user?.nickname || user?.username}
+                </span>
+              </div>
+            </Dropdown>
+          ) : (
+            <Space>
+              <Button
+                type="link"
+                onClick={() => navigate('/auth/login')}
+              >
+                登录
+              </Button>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => navigate('/auth/register')}
+              >
+                注册
+              </Button>
+            </Space>
+          )}
         </Space>
       </Header>
 

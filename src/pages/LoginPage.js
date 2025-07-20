@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, message, Divider } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContextNew';
 
 /**
  * 登录页面组件
@@ -10,29 +11,35 @@ import { Link, useNavigate } from 'react-router-dom';
 const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  // 获取重定向地址
+  const from = location.state?.from?.pathname || '/home';
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // 模拟登录API调用
-      console.log('登录表单数据:', values);
-      
-      // 模拟登录成功
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 保存登录状态
-      localStorage.setItem('token', 'mock-jwt-token');
-      localStorage.setItem('user', JSON.stringify({
-        id: 1,
+      // 使用AuthContext的login方法
+      const loginData = {
+        loginType: 'username',
         username: values.username,
-        nickname: '测试用户',
-        avatar: null
-      }));
-      
+        password: values.password,
+        rememberMe: false
+      };
+
+      await login(loginData);
+
       message.success('登录成功！');
-      navigate('/home');
+
+      // 登录成功后跳转
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 1000);
+
     } catch (error) {
-      message.error('登录失败，请检查用户名和密码');
+      console.error('登录失败:', error);
+      message.error(error.message || '登录失败，请检查用户名和密码');
     } finally {
       setLoading(false);
     }
@@ -101,8 +108,19 @@ const LoginPage = () => {
         </Form.Item>
       </Form>
 
+      <Divider plain>测试账号</Divider>
+
+      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+        <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+          测试账号：alice / bob / charlie
+        </div>
+        <div style={{ fontSize: '12px', color: '#666' }}>
+          密码：123456
+        </div>
+      </div>
+
       <Divider plain>还没有账号？</Divider>
-      
+
       <div style={{ textAlign: 'center' }}>
         <Link to="/auth/register">
           <Button type="link" size="large">

@@ -15,28 +15,30 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Card, 
-  Table, 
-  Button, 
-  Space, 
-  Tag, 
-  Image, 
-  Typography, 
+import {
+  Card,
+  Table,
+  Button,
+  Space,
+  Tag,
+  Image,
+  Typography,
   Select,
   Statistic,
   Row,
   Col,
   message,
-  Popconfirm
+  Popconfirm,
+  Empty
 } from 'antd';
-import { 
-  EditOutlined, 
-  DeleteOutlined, 
+import {
+  EditOutlined,
+  DeleteOutlined,
   EyeOutlined,
   PlusOutlined,
   UpOutlined,
-  DownOutlined
+  DownOutlined,
+  ShopOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContextNew';
@@ -110,11 +112,8 @@ const MyProductsPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       loadMyProducts();
-    } else {
-      // 未登录重定向到登录页面
-      navigate('/auth/login');
     }
-  }, [isAuthenticated, loadMyProducts, navigate]);
+  }, [isAuthenticated, loadMyProducts]);
 
   // 处理分页
   const handlePageChange = (page, pageSize) => {
@@ -309,9 +308,20 @@ const MyProductsPage = () => {
     }
   ];
 
-  // 未登录时显示加载状态，避免在render中导航
+  // 未登录状态
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+        <Empty
+          image={<ShopOutlined style={{ fontSize: '64px', color: '#ccc' }} />}
+          description="请先登录查看我的商品"
+        >
+          <Button type="primary" onClick={() => navigate('/auth/login')}>
+            立即登录
+          </Button>
+        </Empty>
+      </div>
+    );
   }
 
   return (

@@ -3,10 +3,16 @@ export const APP_CONFIG = {
   // 应用信息
   APP_NAME: '拾物',
   VERSION: '1.0.0',
-  
+
   // API配置
   API_BASE_URL: process.env.REACT_APP_API_URL || '/api/v1',
   REQUEST_TIMEOUT: 10000,
+
+  // Mock数据配置
+  // 🔧 修改这里可以控制是否使用Mock数据
+  // true: 使用Mock数据（开发模式）
+  // false: 连接真实API（生产模式）
+  USE_MOCK_DATA: process.env.NODE_ENV === 'development',
   
   // 分页配置
   DEFAULT_PAGE_SIZE: 20,
