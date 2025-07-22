@@ -79,9 +79,9 @@ const ProductCard = ({
   };
 
   // 获取主图
-  const mainImage = product.imageUrls && product.imageUrls.length > 0 
-    ? product.imageUrls[0] 
-    : '/placeholder-image.png';
+  const mainImage = product.imageUrls && product.imageUrls.length > 0
+    ? product.imageUrls[0]
+    : '/placeholder-image.svg';
 
   const isAvailable = product.status === PRODUCT_STATUS.ON_SALE;
 
@@ -95,7 +95,7 @@ const ProductCard = ({
             alt={product.title}
             preview={false}
             className="product-card__image"
-            fallback="/placeholder-image.png"
+            fallback="/placeholder-image.svg"
           />
           <div className="product-card__overlay">
             <Space>
@@ -148,7 +148,7 @@ const ProductCard = ({
 
             {/* 描述 */}
             <div className="product-card__description">
-              <Text type="secondary" ellipsis={{ rows: 2, tooltip: product.description }}>
+              <Text type="secondary" ellipsis={{ tooltip: product.description }}>
                 {product.description}
               </Text>
             </div>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import notificationService from '../services/notificationService';
 import { message as antdMessage } from 'antd';
+import { useAuth } from './AuthContextNew';
 
 // 初始状态
 const initialState = {
@@ -150,6 +151,7 @@ const NotificationContext = createContext();
 // Provider组件
 export const NotificationProvider = ({ children }) => {
   const [state, dispatch] = useReducer(notificationReducer, initialState);
+  const { isAuthenticated } = useAuth();
 
   // 获取通知列表
   const fetchNotifications = useCallback(async (params = {}) => {
@@ -237,11 +239,21 @@ export const NotificationProvider = ({ children }) => {
   const fetchSettings = async () => {
     try {
       const data = await notificationService.getSettings();
-      dispatch({ type: ActionTypes.SET_SETTINGS, payload: data });
+      dispatch({ type: ActionTypes.SET_SETTINGS, payload: data.data || data });
       return data;
     } catch (error) {
-      antdMessage.error(error.message);
-      throw error;
+      console.warn('获取通知设置失败，使用默认设置:', error.message);
+      // 使用默认设置，不显示错误消息
+      const defaultSettings = {
+        enableSystemNotifications: true,
+        enableOrderNotifications: true,
+        enableProductNotifications: true,
+        enableFollowNotifications: true,
+        enableMessageNotifications: true,
+        enablePromotionNotifications: false
+      };
+      dispatch({ type: ActionTypes.SET_SETTINGS, payload: defaultSettings });
+      return { data: defaultSettings };
     }
   };
 
@@ -277,22 +289,28 @@ export const NotificationProvider = ({ children }) => {
     dispatch({ type: ActionTypes.CLEAR_NOTIFICATIONS });
   };
 
-  // 定期更新未读数量
+  // 定期更新未读数量（仅在已登录时）
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // 每30秒更新一次
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+    if (isAuthenticated) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000); // 每30秒更新一次
+      return () => clearInterval(interval);
+    }
+  }, [fetchUnreadCount, isAuthenticated]);
 
-  // 初始化设置
+  // 初始化设置（仅在已登录时）
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (isAuthenticated) {
+      fetchSettings();
+    }
+  }, [isAuthenticated]);
 
-  // 筛选条件变化时重新获取数据
+  // 筛选条件变化时重新获取数据（仅在已登录时）
   useEffect(() => {
-    fetchNotifications();
-  }, [state.filters.type, state.filters.unreadOnly, fetchNotifications]);
+    if (isAuthenticated) {
+      fetchNotifications();
+    }
+  }, [state.filters.type, state.filters.unreadOnly, fetchNotifications, isAuthenticated]);
 
   // Context值
   const value = {

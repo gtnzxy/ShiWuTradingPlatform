@@ -23,13 +23,13 @@ const AuthLayout = () => {
         padding: '24px'
       }}>
         <Card
-          style={{ 
+          style={{
             width: '100%',
             maxWidth: '400px',
             borderRadius: '12px',
             boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
           }}
-          bodyStyle={{ padding: '40px' }}
+          styles={{ body: { padding: '40px' } }}
         >
           {/* Logo区域 */}
           <div style={{ 

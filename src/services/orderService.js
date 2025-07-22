@@ -20,8 +20,8 @@
 import apiClient from './api';
 import { mockUserProducts, simulateDelay } from '../utils/mockData';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// 临时启用Mock数据，等待后端API实现
+const USE_MOCK_DATA = true;
 
 // Mock订单数据
 let mockOrders = [

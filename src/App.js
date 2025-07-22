@@ -10,9 +10,16 @@ import router from './router';
 import './App.css';
 
 // 导入Mock Service Worker（仅在开发环境）
-if (process.env.NODE_ENV === 'development') {
-  import('./mocks/browser');
-}
+// 注释掉MSW以使用真实的后端API
+// if (process.env.NODE_ENV === 'development') {
+//   import('./mocks/browser');
+// }
+
+// 导入API测试工具（开发环境）
+// 暂时禁用测试工具
+// if (process.env.NODE_ENV === 'development') {
+//   import('./test-api-integration');
+// }
 
 function App() {
   return (

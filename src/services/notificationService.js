@@ -1,8 +1,8 @@
-import apiClient from './apiClient';
+import apiClient from './api';
 import { mockNotifications, simulateDelay, generateId } from '../utils/mockData';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// 连接真实后端API
+const USE_MOCK_DATA = false;
 
 const notificationService = {
   /**
@@ -45,7 +45,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.get('/notifications', { params });
+      const response = await apiClient.get('/notification/list', { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取通知列表失败: ${error.message}`);
@@ -68,7 +68,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.put(`/notifications/${id}/read-status`);
+      const response = await apiClient.put(`/notification/mark-read?id=${id}`);
       return response.data;
     } catch (error) {
       throw new Error(`标记通知已读失败: ${error.message}`);
@@ -114,7 +114,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.put('/notifications/read-all');
+      const response = await apiClient.put('/notification/mark-all-read');
       return response.data;
     } catch (error) {
       throw new Error(`标记全部已读失败: ${error.message}`);
@@ -156,7 +156,7 @@ const notificationService = {
     }
     
     try {
-      const response = await apiClient.get('/notifications/unread-count');
+      const response = await apiClient.get('/notification/unread-count');
       return response.data;
     } catch (error) {
       throw new Error(`获取未读数量失败: ${error.message}`);
@@ -168,36 +168,28 @@ const notificationService = {
    * @returns {Promise} 通知设置
    */
   getSettings: async () => {
-    if (USE_MOCK_DATA) {
-      await simulateDelay(200);
-      return {
-        data: {
-          push: true,
-          email: true,
-          sms: false,
-          types: {
-            system: true,
-            order: true,
-            product: true,
-            follow: true,
-            message: true,
-            promotion: false
-          },
-          schedule: {
-            startTime: '09:00',
-            endTime: '22:00',
-            enabled: true
-          }
+    // 由于后端暂时没有settings API，返回默认设置
+    await simulateDelay(200);
+    return {
+      data: {
+        push: true,
+        email: true,
+        sms: false,
+        types: {
+          system: true,
+          order: true,
+          product: true,
+          follow: true,
+          message: true,
+          promotion: false
+        },
+        schedule: {
+          startTime: '09:00',
+          endTime: '22:00',
+          enabled: true
         }
-      };
-    }
-    
-    try {
-      const response = await apiClient.get('/notifications/settings');
-      return response.data;
-    } catch (error) {
-      throw new Error(`获取通知设置失败: ${error.message}`);
-    }
+      }
+    };
   },
 
   /**
@@ -206,18 +198,11 @@ const notificationService = {
    * @returns {Promise} 操作结果
    */
   updateSettings: async (settings) => {
-    if (USE_MOCK_DATA) {
-      await simulateDelay(300);
-      // 在Mock环境中，只是简单返回成功
-      return { success: true, data: settings };
-    }
-    
-    try {
-      const response = await apiClient.put('/notifications/settings', settings);
-      return response.data;
-    } catch (error) {
-      throw new Error(`更新通知设置失败: ${error.message}`);
-    }
+    // 由于后端暂时没有settings API，只在本地保存
+    await simulateDelay(300);
+    // 可以将设置保存到localStorage
+    localStorage.setItem('notificationSettings', JSON.stringify(settings));
+    return { success: true, data: settings };
   },
 
   /**

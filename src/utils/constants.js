@@ -4,15 +4,15 @@ export const APP_CONFIG = {
   APP_NAME: '拾物',
   VERSION: '1.0.0',
 
-  // API配置
-  API_BASE_URL: process.env.REACT_APP_API_URL || '/api/v1',
+  // API配置 - 强制使用相对路径配合代理
+  API_BASE_URL: '/api',
   REQUEST_TIMEOUT: 10000,
 
   // Mock数据配置
   // 🔧 修改这里可以控制是否使用Mock数据
   // true: 使用Mock数据（开发模式）
   // false: 连接真实API（生产模式）
-  USE_MOCK_DATA: process.env.NODE_ENV === 'development',
+  USE_MOCK_DATA: false, // 禁用Mock数据，连接后端真实API
   
   // 分页配置
   DEFAULT_PAGE_SIZE: 20,
@@ -287,6 +287,33 @@ export const CATEGORIES = [
   { id: 18, categoryId: 18, name: '其他', icon: '📦' }
 ];
 
+// 分类名称映射（英文到中文）
+export const CATEGORY_NAME_MAP = {
+  'ELECTRONICS': '电子产品',
+  'CLOTHING': '服装鞋帽',
+  'BOOKS': '图书文具',
+  'SPORTS': '运动用品',
+  'DAILY_NECESSITIES': '生活用品',
+  'OTHER': '其他',
+  // 兼容其他可能的英文名称
+  'BOOKS_STATIONERY': '图书文具',
+  'CLOTHING_ACCESSORIES': '服装配饰',
+  'SPORTS_FITNESS': '运动健身',
+  'DAILY_GOODS': '生活用品',
+  'BEAUTY_COSMETICS': '美妆护肤',
+  'HOME_DECORATION': '家居装饰',
+  'BABY_PRODUCTS': '母婴用品',
+  'FOOD_BEVERAGE': '食品饮料',
+  'CAR_ACCESSORIES': '汽车用品',
+  'MUSIC_INSTRUMENTS': '乐器音响',
+  'PET_SUPPLIES': '宠物用品',
+  'HANDICRAFTS': '手工艺品',
+  'COLLECTIBLES': '收藏品',
+  'OFFICE_SUPPLIES': '办公文具',
+  'GAMES_ENTERTAINMENT': '游戏娱乐',
+  'TRAVEL_OUTDOOR': '旅行户外'
+};
+
 // 用户角色
 export const USER_ROLES = {
   USER: 'USER',
@@ -371,7 +398,21 @@ export const ERROR_MESSAGES = {
   FORBIDDEN: '权限不足',
   NOT_FOUND: '请求的资源不存在',
   VALIDATION_ERROR: '输入数据格式不正确',
-  TIMEOUT: '请求超时，请稍后重试'
+  TIMEOUT: '请求超时，请稍后重试',
+
+  // 登录相关错误
+  LOGIN_FAILED: '登录失败，请检查用户名和密码',
+  USER_NOT_FOUND: '用户不存在，请检查用户名或先注册账号',
+  WRONG_PASSWORD: '密码错误，请重新输入',
+  ACCOUNT_LOCKED: '账号已被锁定，请联系管理员',
+  ACCOUNT_DISABLED: '账号已被禁用，请联系管理员',
+  LOGIN_EXPIRED: '登录已过期，请重新登录',
+
+  // 注册相关错误
+  REGISTER_FAILED: '注册失败，请稍后重试',
+  USERNAME_EXISTS: '用户名已存在，请选择其他用户名',
+  EMAIL_EXISTS: '邮箱已被注册，请使用其他邮箱',
+  PHONE_EXISTS: '手机号已被注册，请使用其他手机号'
 };
 
 // 成功消息

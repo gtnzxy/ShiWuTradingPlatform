@@ -1,8 +1,8 @@
-import apiClient from './apiClient';
+import apiClient from './api';
 import { mockUsers, simulateDelay } from '../utils/mockData';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// 禁用Mock数据，使用真实API
+const USE_MOCK_DATA = false;
 
 // Mock关注关系数据
 const mockFollowRelations = {
@@ -52,9 +52,7 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.post(`/users/${userId}/followers`, {
-        action: 'FOLLOW'
-      });
+      const response = await apiClient.post(`/user/${userId}/follow`);
       return response.data;
     } catch (error) {
       throw new Error(`关注用户失败: ${error.message}`);
@@ -97,9 +95,7 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.post(`/users/${userId}/followers`, {
-        action: 'UNFOLLOW'
-      });
+      const response = await apiClient.delete(`/user/${userId}/follow`);
       return response.data;
     } catch (error) {
       throw new Error(`取消关注失败: ${error.message}`);
@@ -124,7 +120,7 @@ const followService = {
     }
     
     try {
-      const response = await apiClient.get(`/users/${userId}/follow-status`);
+      const response = await apiClient.get(`/user/${userId}/follow`);
       return response.data;
     } catch (error) {
       throw new Error(`检查关注状态失败: ${error.message}`);

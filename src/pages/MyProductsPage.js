@@ -1,19 +1,3 @@
-/**
- * 我的商品页面 - 第3周核心功能
- * 
- * 功能：
- * - 我发布的商品列表
- * - 商品状态筛选
- * - 商品编辑和删除
- * - 商品上下架管理
- * - 商品数据统计
- * 
- * 遵循设计标准：
- * - 严格按照后端API设计
- * - 使用Ant Design组件
- * - 响应式布局
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,

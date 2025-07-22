@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>工作日报</title>
+  <style>
+    body { font-family: "微软雅黑", Arial, sans-serif; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 900px;
+      margin: 40px auto;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #888;
+      padding: 8px 12px;
+      vertical-align: top;
+      font-size: 16px;
+    }
+    th {
+      background: #f5f5f5;
+      text-align: center;
+      font-weight: normal;
+    }
+    .title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: bold;
+      margin: 40px 0 20px 0;
+      letter-spacing: 4px;
+    }
+    .vertical {
+      writing-mode: vertical-rl;
+      text-align: center;
+      font-size: 18px;
+      background: #f5f5f5;
+      min-width: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">工作日报</div>
+  <table>
+    <tr>
+      <th style="width: 60px;">姓名</th>
+      <td style="width: 100px;">张讯毓</td>
+      <th style="width: 60px;">时间</th>
+      <td style="width: 120px;">2025. 7. 21</td>
+      <th style="width: 120px;">团队项目名称</th>
+      <td>"拾物"——二手交易平台</td>
+    </tr>
+    <tr>
+      <th class="vertical" rowspan="5">工作总结</th>
+      <td colspan="5">完成的内容：</td>
+    </tr>
+    <tr>
+      <td colspan="5" style="height: 60px;">1. 开始前后端API联调工作<br>
+      2. 完成用户登录注册接口对接<br>
+      3. 实现商品列表和详情页面数据获取<br>
+      4. 调试商品发布功能API接口<br>
+      5. 修复前端数据处理相关bug</td>
+    </tr>
+    <tr>
+      <td colspan="5">未完成的内容：</td>
+    </tr>
+    <tr>
+      <td colspan="5" style="height: 40px;">订单管理和支付功能API联调</td>
+    </tr>
+    <tr>
+      <td colspan="5">
+        现有问题：部分API接口返回数据格式需要调整<br>
+        <div style="border-top:1px solid #000; margin:8px 0 8px 0;"></div>
+        改进建议：建立统一的API数据格式规范，减少联调问题
+      </td>
+    </tr>
+    <tr>
+      <th class="vertical" rowspan="2">工作计划</th>
+      <td colspan="5">内容：</td>
+    </tr>
+    <tr>
+      <td colspan="5" style="height: 100px;">1. 继续完成订单管理API联调<br>
+      2. 实现支付功能接口对接<br>
+      3. 进行系统集成测试<br>
+      4. 修复联调过程中发现的问题</td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import messageService from '../services/messageService';
 import { message as antdMessage } from 'antd';
+import { useAuth } from './AuthContextNew';
 
 // 初始状态
 const initialState = {
@@ -148,18 +149,37 @@ const MessageContext = createContext();
 // Provider组件
 export const MessageProvider = ({ children }) => {
   const [state, dispatch] = useReducer(messageReducer, initialState);
+  const { isAuthenticated } = useAuth();
 
   // 获取会话列表
   const fetchConversations = useCallback(async (params = {}) => {
+    // 检查用户认证状态
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+
+    if (!token || !user) {
+      console.warn('用户未登录，跳过获取会话列表');
+      dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: [] });
+      return { data: [], total: 0 };
+    }
+
     try {
       dispatch({ type: ActionTypes.SET_LOADING, payload: true });
       const data = await messageService.getConversations(params);
       dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: data.data || [] });
       return data;
     } catch (error) {
+      console.error('获取会话列表失败:', error);
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
-      antdMessage.error(error.message);
-      throw error;
+
+      // 如果是认证错误，设置空列表
+      if (error.message.includes('未授权') || error.message.includes('认证')) {
+        dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: [] });
+      }
+
+      return { data: [], total: 0 };
+    } finally {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
   }, []);
 
@@ -175,9 +195,17 @@ export const MessageProvider = ({ children }) => {
       });
       return data;
     } catch (error) {
+      console.error('获取消息历史失败:', error.message);
       dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
-      antdMessage.error(error.message);
-      throw error;
+      // 设置空的消息列表
+      dispatch({
+        type: ActionTypes.SET_MESSAGES,
+        conversationId,
+        payload: []
+      });
+      return { data: [], total: 0 };
+    } finally {
+      dispatch({ type: ActionTypes.SET_LOADING, payload: false });
     }
   }, []);
 
@@ -203,10 +231,13 @@ export const MessageProvider = ({ children }) => {
   const fetchUnreadCount = useCallback(async () => {
     try {
       const data = await messageService.getUnreadCount();
-      dispatch({ type: ActionTypes.SET_UNREAD_COUNT, payload: data.count });
+      dispatch({ type: ActionTypes.SET_UNREAD_COUNT, payload: data.count || 0 });
       return data;
     } catch (error) {
-      console.error('获取未读数量失败:', error);
+      console.warn('获取消息未读数量失败，设置为0:', error.message);
+      // 设置未读数量为0，避免显示错误状态
+      dispatch({ type: ActionTypes.SET_UNREAD_COUNT, payload: 0 });
+      return { count: 0 };
     }
   }, []);
 
@@ -261,12 +292,14 @@ export const MessageProvider = ({ children }) => {
 
 
 
-  // 定期更新未读数量
+  // 定期更新未读数量（仅在已登录时）
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // 每30秒更新一次
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+    if (isAuthenticated) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000); // 每30秒更新一次
+      return () => clearInterval(interval);
+    }
+  }, [fetchUnreadCount, isAuthenticated]);
 
   // Context值
   const value = {

@@ -25,14 +25,13 @@ const ProductListPage = () => {
 
   const [filters, setFilters] = useState({
     keyword: searchParams.get('keyword') || '',
-    category_id: searchParams.get('category_id') || null,
-    min_price: searchParams.get('min_price') || null,
-    max_price: searchParams.get('max_price') || null,
-    condition: searchParams.get('condition') || null,
+    categoryId: searchParams.get('categoryId') || null,
+    minPrice: searchParams.get('minPrice') || null,
+    maxPrice: searchParams.get('maxPrice') || null,
     status: searchParams.get('status') || 'on_sale',
     location: searchParams.get('location') || null,
-    sort_by: searchParams.get('sort_by') || 'created_at',
-    sort_order: searchParams.get('sort_order') || 'desc'
+    sortBy: searchParams.get('sortBy') || 'create_time',
+    sortDirection: searchParams.get('sortDirection') || 'desc'
   });
 
   // 从URL参数初始化分页
@@ -49,35 +48,55 @@ const ProductListPage = () => {
   // 加载产品数据
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const loadProducts = useCallback(async (params = {}) => {
+    console.log('📦 ProductListPage开始加载商品数据...');
+    console.log('🔧 传入参数:', params);
+    console.log('🔧 当前filters:', filters);
+    console.log('📄 当前分页:', pagination);
+
     setLoading(true);
     try {
       const searchFilters = { ...filters, ...params };
-      
-      // 清理空值
+      console.log('🔍 合并后的搜索条件:', searchFilters);
+
+      // 清理空值，但保留keyword即使为空字符串
       const cleanFilters = Object.entries(searchFilters).reduce((acc, [key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
+        if (key === 'keyword') {
+          // keyword即使为空字符串也要保留，用于清空搜索
+          acc[key] = value || '';
+        } else if (value !== null && value !== undefined && value !== '') {
           acc[key] = value;
         }
         return acc;
       }, {});
 
-      const response = await productService.searchProducts({
+      console.log('✨ 清理后的搜索条件:', cleanFilters);
+
+      const finalParams = {
         ...cleanFilters,
         page: pagination.current,
         page_size: pagination.pageSize
-      });
+      };
+
+      console.log('📋 最终API请求参数:', finalParams);
+
+      const response = await productService.searchProducts(finalParams);
+      console.log('📦 商品搜索API响应:', response);
 
       if (response.success) {
-        setProducts(response.data.products || []);
+        const products = response.data.products || [];
+        console.log('✅ 获取到商品数据:', products.length, '个商品');
+
+        setProducts(products);
         setPagination(prev => ({
           ...prev,
           total: response.data.total || 0
         }));
       } else {
+        console.error('❌ 商品搜索失败:', response.message);
         message.error(response.message || '加载商品失败');
       }
     } catch (error) {
-      console.error('加载商品失败:', error);
+      console.error('❌ 加载商品失败:', error);
       message.error('加载商品失败，请重试');
     } finally {
       setLoading(false);
@@ -113,18 +132,38 @@ const ProductListPage = () => {
 
   // 处理搜索
   const handleSearch = useCallback((searchParams) => {
+    console.log('🔍 ProductListPage处理搜索请求:', searchParams);
+
     const newFilters = { ...filters, ...searchParams };
     setFilters(newFilters);
-    setPagination(prev => ({ ...prev, current: 1 })); // 重置到第一页
+
+    // 重置到第一页
+    const newPagination = { ...pagination, current: 1 };
+    setPagination(newPagination);
+
+    // 更新URL参数
     updateSearchParams({ ...newFilters, page: 1 });
-    loadProducts(searchParams);
-  }, [filters, updateSearchParams, loadProducts]);
+
+    // 重新加载商品数据，传递完整的筛选条件
+    loadProducts(newFilters);
+  }, [filters, pagination, updateSearchParams, loadProducts]);
 
   // 处理筛选变化
   const handleFilterChange = useCallback((newFilters) => {
+    console.log('🔧 ProductListPage处理筛选变化:', newFilters);
+
     setFilters(newFilters);
-    updateSearchParams(newFilters);
-  }, [updateSearchParams]);
+
+    // 重置到第一页
+    const newPagination = { ...pagination, current: 1 };
+    setPagination(newPagination);
+
+    // 更新URL参数
+    updateSearchParams({ ...newFilters, page: 1 });
+
+    // 重新加载商品数据
+    loadProducts(newFilters);
+  }, [pagination, updateSearchParams, loadProducts]);
 
   // 处理分页变化
   const handlePageChange = useCallback((page, pageSize) => {

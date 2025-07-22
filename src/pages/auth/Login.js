@@ -1,20 +1,21 @@
-import React, { useState, useContext } from 'react';
-import { Form, Card, Row, Col, Typography, Divider, message, Checkbox } from 'antd';
+import React, { useState } from 'react';
+import { Form, Input, Button, Typography } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { UserOutlined, LockOutlined, MobileOutlined } from '@ant-design/icons';
-import Button from '../../components/atoms/Button/Button';
-import Input from '../../components/atoms/Input/Input';
-import { AuthContext } from '../../context/AuthContextNew';
-import { APP_CONFIG, REGEX_PATTERNS, ERROR_MESSAGES, SUCCESS_MESSAGES } from '../../utils/constants';
-import './Auth.css';
+import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContextNew';
+import { STORAGE_KEYS } from '../../utils/constants';
+import Logo from '../../components/atoms/Logo';
 
 const { Title, Text } = Typography;
 
 const Login = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [loginType, setLoginType] = useState('username'); // username | phone
-  const { login } = useContext(AuthContext);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const { setLoginState } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,68 +25,106 @@ const Login = () => {
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      
-      // 构造登录数据
-      const loginData = {
-        loginType,
-        [loginType]: values.account,
-        password: values.password,
-        rememberMe: values.rememberMe || false
-      };
+      setErrorMessage('');
+      setSuccessMessage('');
 
-      await login(loginData);
-      
-      message.success(SUCCESS_MESSAGES.LOGIN_SUCCESS);
-      
-      // 登录成功后跳转
+      // 直接使用 authService，不通过 AuthContext
+      const result = await authService.login({
+        loginType: 'username',
+        username: values.username,
+        password: values.password,
+        rememberMe: false
+      });
+
+      // 保存登录信息到localStorage
+      if (result.success && result.data.token) {
+        localStorage.setItem(STORAGE_KEYS.TOKEN, result.data.token);
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(result.data.user));
+        console.log('✅ 登录信息已保存到localStorage');
+
+        // 更新AuthContext状态
+        setLoginState(result.data.user, result.data.token);
+        console.log('✅ AuthContext状态已更新');
+      }
+
+      // 登录成功
+      setSuccessMessage('登录成功！正在跳转...');
+
+      // 1.5秒后跳转
       setTimeout(() => {
         navigate(from, { replace: true });
-      }, 1000);
-      
+      }, 1500);
+
     } catch (error) {
-      console.error('登录失败:', error);
-      message.error(error.message || ERROR_MESSAGES.SERVER_ERROR);
+      console.error('❌ 登录失败:', error);
+
+      // 设置错误信息
+      let errorMsg = '登录失败，请稍后重试';
+      if (error.message) {
+        if (error.message.includes('密码错误') || error.message.includes('用户名或密码错误')) {
+          errorMsg = '用户名或密码错误，请重新输入';
+        } else if (error.message.includes('用户不存在')) {
+          errorMsg = '用户不存在，请检查用户名或先注册账号';
+        } else {
+          errorMsg = error.message;
+        }
+      }
+      setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  const validateAccount = (rule, value) => {
-    if (!value) {
-      return Promise.reject(new Error('请输入账号'));
-    }
-    
-    if (loginType === 'username') {
-      if (!REGEX_PATTERNS.USERNAME.test(value)) {
-        return Promise.reject(new Error('用户名格式不正确，支持3-20位字母、数字、下划线'));
-      }
-    } else if (loginType === 'phone') {
-      if (!REGEX_PATTERNS.PHONE.test(value)) {
-        return Promise.reject(new Error('手机号格式不正确'));
-      }
-    }
-    
-    return Promise.resolve();
-  };
-
-  const switchLoginType = () => {
-    setLoginType(loginType === 'username' ? 'phone' : 'username');
-    form.resetFields(['account']);
-  };
-
   return (
-    <div className="auth-container">
-      <div className="auth-background" />
-      <Card className="auth-card" bordered={false}>
-        <div className="auth-header">
-          <Title level={2} className="auth-title">
-            欢迎回来
+    <div style={{
+      width: '100%',
+      maxWidth: '400px',
+      background: 'white',
+      borderRadius: '8px',
+      padding: '40px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+      margin: '20px auto'
+    }}>
+        {/* Logo和标题 */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <Logo size="large" />
+          <Title level={2} style={{ margin: '16px 0 8px 0', color: '#1890ff' }}>
+            登录账号
           </Title>
-          <Text type="secondary" className="auth-subtitle">
-            登录 {APP_CONFIG.APP_NAME}
-          </Text>
+          <Text type="secondary">登录您的拾物平台账号</Text>
         </div>
 
+        {/* 错误提示 */}
+        {errorMessage && (
+          <div style={{
+            color: '#ff4d4f',
+            backgroundColor: '#fff2f0',
+            border: '1px solid #ffccc7',
+            borderRadius: '4px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '14px'
+          }}>
+            {errorMessage}
+          </div>
+        )}
+
+        {/* 成功提示 */}
+        {successMessage && (
+          <div style={{
+            color: '#52c41a',
+            backgroundColor: '#f6ffed',
+            border: '1px solid #b7eb8f',
+            borderRadius: '4px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '14px'
+          }}>
+            {successMessage}
+          </div>
+        )}
+
+        {/* 登录表单 */}
         <Form
           form={form}
           name="login"
@@ -93,17 +132,20 @@ const Login = () => {
           onFinish={handleSubmit}
           autoComplete="off"
           layout="vertical"
-          className="auth-form"
         >
           <Form.Item
-            name="account"
-            label={loginType === 'username' ? '用户名' : '手机号'}
-            rules={[{ validator: validateAccount }]}
+            name="username"
+            label="用户名"
+            rules={[
+              { required: true, message: '请输入用户名' },
+              { min: 3, message: '用户名至少3个字符' },
+              { max: 20, message: '用户名不超过20个字符' }
+            ]}
           >
             <Input
-              prefix={loginType === 'username' ? <UserOutlined /> : <MobileOutlined />}
-              placeholder={loginType === 'username' ? '请输入用户名' : '请输入手机号'}
-              maxLength={loginType === 'username' ? APP_CONFIG.USERNAME_MAX_LENGTH : 11}
+              prefix={<UserOutlined />}
+              placeholder="请输入用户名"
+              maxLength={20}
             />
           </Form.Item>
 
@@ -111,98 +153,43 @@ const Login = () => {
             name="password"
             label="密码"
             rules={[
-              { required: true, message: '请输入密码' },
-              { min: APP_CONFIG.PASSWORD_MIN_LENGTH, message: `密码至少${APP_CONFIG.PASSWORD_MIN_LENGTH}位` },
-              { max: APP_CONFIG.PASSWORD_MAX_LENGTH, message: `密码不超过${APP_CONFIG.PASSWORD_MAX_LENGTH}位` }
+              { required: true, message: '请输入密码' }
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
               placeholder="请输入密码"
-              maxLength={APP_CONFIG.PASSWORD_MAX_LENGTH}
+              maxLength={50}
             />
           </Form.Item>
 
-          <Form.Item>
-            <Row justify="space-between" align="middle">
-              <Col>
-                <Form.Item name="rememberMe" valuePropName="checked" noStyle>
-                  <Checkbox>记住我</Checkbox>
-                </Form.Item>
-              </Col>
-              <Col>
-                <Link to="/auth/forgot-password" className="auth-link">
-                  忘记密码？
-                </Link>
-              </Col>
-            </Row>
-          </Form.Item>
-
-          <Form.Item>
+          {/* 登录按钮 */}
+          <Form.Item style={{ marginBottom: '16px' }}>
             <Button
               type="primary"
               htmlType="submit"
-              size="large"
               loading={loading}
               block
-              className="auth-submit-btn"
+              size="large"
+              style={{ height: '48px', fontSize: '16px' }}
             >
-              {loading ? '登录中...' : '登录'}
+              立即登录
             </Button>
           </Form.Item>
 
-          <Form.Item>
-            <div className="auth-switch">
-              <Button
-                type="link"
-                onClick={switchLoginType}
-                className="switch-login-type"
-              >
-                {loginType === 'username' ? '手机号登录' : '用户名登录'}
-              </Button>
-            </div>
-          </Form.Item>
+
+
+          {/* 注册链接 */}
+          <div style={{ textAlign: 'center' }}>
+            <Text type="secondary">
+              还没有账号？
+              <Link to="/auth/register" style={{ color: '#1890ff', marginLeft: '4px' }}>
+                立即注册
+              </Link>
+            </Text>
+          </div>
         </Form>
-
-        <Divider>
-          <Text type="secondary">其他登录方式</Text>
-        </Divider>
-
-        <div className="auth-social">
-          <Row gutter={16}>
-            <Col span={12}>
-              <Button
-                block
-                size="large"
-                className="social-btn wechat-btn"
-                onClick={() => message.info('微信登录功能开发中')}
-              >
-                微信登录
-              </Button>
-            </Col>
-            <Col span={12}>
-              <Button
-                block
-                size="large"
-                className="social-btn qq-btn"
-                onClick={() => message.info('QQ登录功能开发中')}
-              >
-                QQ登录
-              </Button>
-            </Col>
-          </Row>
-        </div>
-
-        <div className="auth-footer">
-          <Text type="secondary">
-            还没有账号？{' '}
-            <Link to="/auth/register" className="auth-link">
-              立即注册
-            </Link>
-          </Text>
-        </div>
-      </Card>
-    </div>
+      </div>
   );
 };
 

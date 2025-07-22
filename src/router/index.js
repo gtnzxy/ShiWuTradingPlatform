@@ -5,9 +5,12 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from '../components/templates/MainLayout';
 import AuthLayout from '../components/templates/AuthLayout';
 
+// Route protection components
+import ProtectedRoute, { PublicRoute } from '../components/ProtectedRoute/ProtectedRoute';
+
 // Auth pages
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
+import Login from '../pages/auth/Login';
+import Register from '../pages/auth/Register';
 
 // Main pages
 import HomePage from '../pages/HomePage';
@@ -35,6 +38,12 @@ import FollowersPage from '../pages/FollowersPage';
 
 // Error page
 import NotFoundPage from '../pages/NotFoundPage';
+
+// Debug pages (development only)
+import AuthDebug from '../pages/debug/AuthDebug';
+import PasswordTest from '../pages/debug/PasswordTest';
+import MessageNotificationTest from '../pages/debug/MessageNotificationTest';
+import UserFunctionTest from '../pages/debug/UserFunctionTest';
 
 // Create router configuration
 export const router = createBrowserRouter([
@@ -64,39 +73,75 @@ export const router = createBrowserRouter([
       },
       {
         path: 'publish',
-        element: <PublishProductPage />
+        element: (
+          <ProtectedRoute>
+            <PublishProductPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'my-products',
-        element: <MyProductsPage />
+        element: (
+          <ProtectedRoute>
+            <MyProductsPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'cart',
-        element: <CartPage />
+        element: (
+          <ProtectedRoute>
+            <CartPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'checkout',
-        element: <CheckoutPage />
+        element: (
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'payment',
-        element: <PaymentPage />
+        element: (
+          <ProtectedRoute>
+            <PaymentPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'orders',
-        element: <OrderListPage />
+        element: (
+          <ProtectedRoute>
+            <OrderListPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'orders/:id',
-        element: <OrderDetailPage />
+        element: (
+          <ProtectedRoute>
+            <OrderDetailPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'orders/:orderId/review',
-        element: <OrderReviewPage />
+        element: (
+          <ProtectedRoute>
+            <OrderReviewPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'orders/:orderId/return',
-        element: <ReturnRequestPage />
+        element: (
+          <ProtectedRoute>
+            <ReturnRequestPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'profile/:id',
@@ -104,27 +149,68 @@ export const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: <UserSettingsPage />
+        element: (
+          <ProtectedRoute>
+            <UserSettingsPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'addresses',
-        element: <AddressManagePage />
+        element: (
+          <ProtectedRoute>
+            <AddressManagePage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'following',
-        element: <FollowingPage />
+        element: (
+          <ProtectedRoute>
+            <FollowingPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'followers',
-        element: <FollowersPage />
+        element: (
+          <ProtectedRoute>
+            <FollowersPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'messages',
-        element: <MessageCenterPage />
+        element: (
+          <ProtectedRoute>
+            <MessageCenterPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: 'notifications',
-        element: <NotificationPage />
+        element: (
+          <ProtectedRoute>
+            <NotificationPage />
+          </ProtectedRoute>
+        )
+      },
+      // Debug routes (development only)
+      {
+        path: 'debug/auth',
+        element: <AuthDebug />
+      },
+      {
+        path: 'debug/password',
+        element: <PasswordTest />
+      },
+      {
+        path: 'debug/message-notification',
+        element: <MessageNotificationTest />
+      },
+      {
+        path: 'debug/user-function',
+        element: <UserFunctionTest />
       }
     ]
   },
@@ -134,11 +220,19 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'login',
-        element: <LoginPage />
+        element: (
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        )
       },
       {
         path: 'register',
-        element: <RegisterPage />
+        element: (
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        )
       }
     ]
   },

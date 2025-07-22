@@ -1,8 +1,8 @@
-import apiClient from './apiClient';
+import apiClient from './api';
 import { mockSearchHistory, mockUserProducts, mockUsers, simulateDelay } from '../utils/mockData';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// 临时启用Mock数据，等待后端API实现
+const USE_MOCK_DATA = true;
 
 // Mock热门搜索关键词
 const mockHotKeywords = [
@@ -92,7 +92,7 @@ const searchService = {
     }
     
     try {
-      const response = await apiClient.get('/api/search/products', { params });
+      const response = await apiClient.get('/search/products', { params });
       return response.data;
     } catch (error) {
       throw new Error(`搜索商品失败: ${error.message}`);
@@ -141,7 +141,7 @@ const searchService = {
     }
     
     try {
-      const response = await apiClient.get('/api/search/users', { params });
+      const response = await apiClient.get('/search/users', { params });
       return response.data;
     } catch (error) {
       throw new Error(`搜索用户失败: ${error.message}`);
@@ -184,7 +184,7 @@ const searchService = {
     }
     
     try {
-      const response = await apiClient.get('/api/search/suggestions', {
+      const response = await apiClient.get('/search/suggestions', {
         params: { keyword, type }
       });
       return response.data;
@@ -211,7 +211,7 @@ const searchService = {
     }
     
     try {
-      const response = await apiClient.get('/api/search/hot-keywords', {
+      const response = await apiClient.get('/search/hot-keywords', {
         params: { type, limit }
       });
       return response.data;
@@ -246,7 +246,7 @@ const searchService = {
    */
   getSearchHistory: async (params = {}) => {
     try {
-      const response = await apiClient.get('/api/search/history', { params });
+      const response = await apiClient.get('/search/history', { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取搜索历史失败: ${error.message}`);
@@ -289,7 +289,7 @@ const searchService = {
    */
   getFilterOptions: async (type) => {
     try {
-      const response = await apiClient.get(`/api/search/filter-options/${type}`);
+      const response = await apiClient.get(`/search/filter-options/${type}`);
       return response.data;
     } catch (error) {
       throw new Error(`获取筛选选项失败: ${error.message}`);
@@ -303,7 +303,7 @@ const searchService = {
    */
   getSearchStats: async (keyword) => {
     try {
-      const response = await apiClient.get('/api/search/stats', {
+      const response = await apiClient.get('/search/stats', {
         params: { keyword }
       });
       return response.data;

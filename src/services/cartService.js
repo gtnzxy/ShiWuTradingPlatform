@@ -13,9 +13,12 @@
 
 import apiClient from './api';
 import { mockUserProducts, simulateDelay } from '../utils/mockData';
+import { STORAGE_KEYS } from '../utils/constants';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+const USE_MOCK_DATA = false;
+
+// 使用本地存储管理购物车，与登录相同的策略
+const USE_LOCAL_STORAGE = true;
 
 // Mock购物车数据
 let mockCartItems = [
@@ -70,14 +73,50 @@ export const cartService = {
     }
 
     try {
-      const response = await apiClient.post('/cart/items', {
-        product_id: productId, // 使用snake_case命名
+      console.log('🛒 添加商品到购物车:', { productId, quantity });
+
+      // 检查本地存储的认证信息
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const user = localStorage.getItem(STORAGE_KEYS.USER);
+      console.log('🔍 添加购物车请求前认证检查:', {
+        hasToken: !!token,
+        hasUser: !!user,
+        tokenStart: token ? token.substring(0, 30) + '...' : 'null'
+      });
+
+      // 如果没有认证信息，提示登录
+      if (!token || !user) {
+        console.log('⚠️ 未找到认证信息，需要登录');
+        throw new Error('请先登录后再添加商品到购物车');
+      }
+
+      // 使用与登录相同的方式调用API，使用正确的后端路径
+      const response = await apiClient.post('/cart/add', {
+        productId: productId,
         quantity
       });
-      return response.data;
+
+      console.log('✅ 添加到购物车成功:', response);
+
+      // 处理后端响应格式，与authService保持一致
+      if (response.success) {
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        throw new Error(response.error?.message || '添加到购物车失败');
+      }
     } catch (error) {
-      console.error('添加到购物车失败:', error);
-      throw error;
+      console.error('❌ 添加到购物车失败:', error);
+
+      // 如果是401错误，不要清除Token，保持登录状态
+      if (error.response?.status === 401) {
+        console.log('⚠️ 收到401错误，但保持登录状态');
+        throw new Error('认证失败，请刷新页面重试');
+      }
+
+      throw new Error(`添加到购物车失败: ${error.message}`);
     }
   },
 
@@ -100,10 +139,45 @@ export const cartService = {
     }
 
     try {
-      await apiClient.delete(`/cart/items/${productId}`);
+      console.log('🗑️ 从购物车移除商品:', productId);
+
+      // 检查本地存储的认证信息
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const user = localStorage.getItem(STORAGE_KEYS.USER);
+      console.log('🔍 移除购物车请求前认证检查:', {
+        hasToken: !!token,
+        hasUser: !!user
+      });
+
+      // 如果没有认证信息，提示登录
+      if (!token || !user) {
+        console.log('⚠️ 未找到认证信息，需要登录');
+        throw new Error('请先登录后再操作购物车');
+      }
+
+      // 使用正确的后端路径
+      const response = await apiClient.delete(`/cart/remove/${productId}`);
+
+      console.log('✅ 从购物车移除成功:', response);
+
+      // 处理后端响应格式
+      if (response.success !== false) {
+        return {
+          success: true
+        };
+      } else {
+        throw new Error(response.error?.message || '从购物车移除商品失败');
+      }
     } catch (error) {
-      console.error('从购物车移除商品失败:', error);
-      throw error;
+      console.error('❌ 从购物车移除商品失败:', error);
+
+      // 如果是401错误，不要清除Token，保持登录状态
+      if (error.response?.status === 401) {
+        console.log('⚠️ 收到401错误，但保持登录状态');
+        throw new Error('认证失败，请刷新页面重试');
+      }
+
+      throw new Error(`从购物车移除商品失败: ${error.message}`);
     }
   },
 
@@ -166,11 +240,62 @@ export const cartService = {
     }
 
     try {
-      const response = await apiClient.get('/cart');
-      return response.data;
+      console.log('🛒 获取购物车数据...');
+
+      // 检查本地存储的认证信息
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const user = localStorage.getItem(STORAGE_KEYS.USER);
+      console.log('🔍 购物车请求前认证检查:', {
+        hasToken: !!token,
+        hasUser: !!user,
+        tokenStart: token ? token.substring(0, 30) + '...' : 'null',
+        userInfo: user ? JSON.parse(user).username : 'null'
+      });
+
+      // 如果没有认证信息，返回空购物车而不是报错
+      if (!token || !user) {
+        console.log('⚠️ 未找到认证信息，返回空购物车');
+        return {
+          success: true,
+          data: {
+            items: [],
+            totalItems: 0,
+            totalPrice: 0
+          }
+        };
+      }
+
+      // 使用正确的后端路径，与登录相同的方式
+      const response = await apiClient.get('/cart/');
+
+      console.log('✅ 获取购物车成功:', response);
+
+      // 处理后端响应格式，与authService保持一致
+      if (response.success) {
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        throw new Error(response.error?.message || '获取购物车失败');
+      }
     } catch (error) {
-      console.error('获取购物车失败:', error);
-      throw error;
+      // 如果是401错误，不要清除Token，而是返回空购物车
+      if (error.response?.status === 401) {
+        console.warn('⚠️ 购物车API需要认证，返回空购物车');
+        return {
+          success: true,
+          data: {
+            items: [],
+            totalItems: 0,
+            totalPrice: 0
+          }
+        };
+      }
+
+      console.error('❌ 获取购物车失败:', error.message);
+      // 其他错误才抛出
+      throw new Error(`获取购物车失败: ${error.message}`);
     }
   },
 
@@ -180,10 +305,15 @@ export const cartService = {
    */
   async getCartItemCount() {
     try {
+      console.log('🔢 获取购物车商品数量...');
+
       const cartData = await this.getCart();
-      return cartData.items ? cartData.items.length : 0;
+      const count = cartData.data?.items ? cartData.data.items.length : 0;
+
+      console.log('✅ 购物车商品数量:', count);
+      return count;
     } catch (error) {
-      console.error('获取购物车数量失败:', error);
+      console.error('❌ 获取购物车数量失败:', error);
       return 0;
     }
   },

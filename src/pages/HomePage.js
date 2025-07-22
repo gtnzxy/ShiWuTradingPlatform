@@ -3,15 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Layout, Typography, Button, Row, Col, Card, message } from 'antd';
 import { PlusOutlined, SearchOutlined, FireOutlined, StarOutlined } from '@ant-design/icons';
 import ProductCard from '../components/molecules/ProductCard/ProductCard';
+import { productService } from '../services/productService';
+import { PRODUCT_STATUS } from '../utils/constants';
 import './HomePage.css';
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 
-/**
- * 首页组件 - 第3周更新版本
- * @returns {React.ReactElement} HomePage组件
- */
 const HomePage = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -24,79 +22,86 @@ const HomePage = () => {
 
   const loadHomeData = async () => {
     try {
-      // 模拟数据加载
-      setTimeout(() => {
-        // 模拟产品数据
-        const mockProducts = [
-          {
-            id: 1,
-            title: '九成新 MacBook Pro 13寸',
-            price: 8999,
-            original_price: 12999,
-            images: ['/api/placeholder/300/200'],
-            status: 'on_sale',
-            condition: 'like_new',
-            seller: { name: '张同学', avatar: '/api/placeholder/40/40' },
-            views_count: 128,
-            favorites_count: 15,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            title: '全新未开封 AirPods Pro',
-            price: 1599,
-            images: ['/api/placeholder/300/200'],
-            status: 'on_sale',
-            condition: 'new',
-            seller: { name: '李同学', avatar: '/api/placeholder/40/40' },
-            views_count: 89,
-            favorites_count: 23,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 3,
-            title: '图书：高等数学教材',
-            price: 25,
-            original_price: 59,
-            images: ['/api/placeholder/300/200'],
-            status: 'on_sale',
-            condition: 'good',
-            seller: { name: '王同学', avatar: '/api/placeholder/40/40' },
-            views_count: 45,
-            favorites_count: 8,
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 4,
-            title: '小米手环6 NFC版',
-            price: 199,
-            original_price: 279,
-            images: ['/api/placeholder/300/200'],
-            status: 'on_sale',
-            condition: 'like_new',
-            seller: { name: '赵同学', avatar: '/api/placeholder/40/40' },
-            views_count: 67,
-            favorites_count: 12,
-            created_at: new Date().toISOString()
+      console.log('🏠 开始加载首页数据...');
+
+      // 加载分类数据
+      const categoriesData = await productService.getCategories();
+      console.log('📋 分类数据:', categoriesData);
+
+      // 转换分类数据格式，添加商品数量（暂时使用随机数）
+      const formattedCategories = categoriesData.map(category => ({
+        ...category,
+        product_count: Math.floor(Math.random() * 200) + 50 // 随机生成50-250的商品数量
+      }));
+      setCategories(formattedCategories);
+
+      // 加载最新商品（按创建时间排序）
+      const featuredResponse = await productService.getProducts({
+        page: 1,
+        pageSize: 8,
+        sortBy: 'CREATE_TIME_DESC' // 使用后端支持的排序参数
+      });
+      console.log('🆕 最新商品数据:', featuredResponse);
+
+      const featuredProducts = featuredResponse.data || featuredResponse.products || featuredResponse.list || [];
+      // 转换数据格式以匹配ProductCard期望的格式
+      const formattedFeaturedProducts = featuredProducts.map(product => {
+        console.log('🔄 转换商品数据:', product);
+        return {
+          ...product,
+          productId: product.id, // ProductCard期望productId字段
+          imageUrls: product.imageUrls || [product.mainImageUrl || '/placeholder-image.svg'],
+          status: product.status === 1 ? PRODUCT_STATUS.ON_SALE : (product.status === 'AVAILABLE' ? PRODUCT_STATUS.ON_SALE : PRODUCT_STATUS.DELISTED), // 转换状态格式
+          viewCount: product.views || product.viewCount || 0, // 统一字段名
+          favoriteCount: product.likes || product.favoriteCount || 0, // 统一字段名
+          category: product.categoryName ? { name: product.categoryName } : null, // CategoryTag期望的格式
+          seller: product.seller || {
+            nickname: `用户${product.sellerId}`,
+            avatarUrl: '/placeholder-avatar.svg' // 使用本地占位头像
           }
-        ];
+        };
+      });
+      console.log('✅ 转换后的最新商品:', formattedFeaturedProducts);
+      setFeaturedProducts(formattedFeaturedProducts.slice(0, 4)); // 只显示前4个
 
-        const mockCategories = [
-          { id: 1, name: '数码电子', icon: '📱', product_count: 256 },
-          { id: 2, name: '图书教材', icon: '📚', product_count: 189 },
-          { id: 3, name: '生活用品', icon: '🏠', product_count: 134 },
-          { id: 4, name: '运动健身', icon: '⚽', product_count: 78 },
-          { id: 5, name: '美妆护肤', icon: '💄', product_count: 92 },
-          { id: 6, name: '服装配饰', icon: '👔', product_count: 167 }
-        ];
+      // 加载热门商品（暂时使用相同数据，但顺序不同）
+      const popularResponse = await productService.getProducts({
+        page: 1,
+        pageSize: 8,
+        sortBy: 'CREATE_TIME_DESC'
+      });
+      console.log('🔥 热门商品数据:', popularResponse);
 
-        setFeaturedProducts(mockProducts);
-        setPopularProducts(mockProducts.slice().reverse());
-        setCategories(mockCategories);
-      }, 1000);
+      const popularProducts = popularResponse.data || popularResponse.products || popularResponse.list || [];
+      // 转换数据格式并将数组反转作为热门商品
+      const formattedPopularProducts = popularProducts.map(product => {
+        console.log('🔄 转换热门商品数据:', product);
+        return {
+          ...product,
+          productId: product.id, // ProductCard期望productId字段
+          imageUrls: product.imageUrls || [product.mainImageUrl || '/placeholder-image.svg'],
+          status: product.status === 1 ? PRODUCT_STATUS.ON_SALE : (product.status === 'AVAILABLE' ? PRODUCT_STATUS.ON_SALE : PRODUCT_STATUS.DELISTED), // 转换状态格式
+          viewCount: product.views || product.viewCount || 0, // 统一字段名
+          favoriteCount: product.likes || product.favoriteCount || 0, // 统一字段名
+          category: product.categoryName ? { name: product.categoryName } : null, // CategoryTag期望的格式
+          seller: product.seller || {
+            nickname: `用户${product.sellerId}`,
+            avatarUrl: '/placeholder-avatar.svg' // 使用本地占位头像
+          }
+        };
+      });
+      console.log('✅ 转换后的热门商品:', formattedPopularProducts);
+      setPopularProducts(formattedPopularProducts.slice().reverse().slice(0, 4));
+
+      console.log('✅ 首页数据加载完成');
     } catch (error) {
-      console.error('加载首页数据失败:', error);
+      console.error('❌ 加载首页数据失败:', error);
       message.error('加载数据失败，请刷新重试');
+
+      // 设置空数据避免页面崩溃
+      setFeaturedProducts([]);
+      setPopularProducts([]);
+      setCategories([]);
     }
   };
 
@@ -105,7 +110,7 @@ const HomePage = () => {
   };
 
   const handleCategoryClick = (category) => {
-    navigate(`/products?category_id=${category.id}`);
+    navigate(`/products?categoryId=${category.id}`);
   };
 
   const handleSearch = () => {
@@ -167,9 +172,9 @@ const HomePage = () => {
                       </div>
                     }
                   >
-                    <Card.Meta 
+                    <Card.Meta
                       title={category.name}
-                      description={`${category.product_count} 件商品`}
+                      description={`${category.product_count || 0} 件商品`}
                     />
                   </Card>
                 </Col>
@@ -183,7 +188,7 @@ const HomePage = () => {
               <Title level={2} className="home-page__section-title">
                 🆕 最新发布
               </Title>
-              <Button type="link" onClick={() => navigate('/products?sort_by=created_at&sort_order=desc')}>
+              <Button type="link" onClick={() => navigate('/products?sortBy=CREATE_TIME_DESC')}>
                 查看更多 →
               </Button>
             </div>
@@ -206,7 +211,7 @@ const HomePage = () => {
               <Title level={2} className="home-page__section-title">
                 <StarOutlined /> 热门商品
               </Title>
-              <Button type="link" onClick={() => navigate('/products?sort_by=views&sort_order=desc')}>
+              <Button type="link" onClick={() => navigate('/products')}>
                 查看更多 →
               </Button>
             </div>

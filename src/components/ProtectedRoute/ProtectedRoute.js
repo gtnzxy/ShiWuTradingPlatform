@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Spin } from 'antd';
-import { useAuth } from '../context/AuthContextNew';
+import { useAuth } from '../../context/AuthContextNew';
 
 /**
  * 路由保护组件
@@ -92,37 +92,7 @@ const ProtectedRoute = ({
   return children;
 };
 
-/**
- * 公开路由组件（已登录用户不能访问）
- * @param {Object} props - 组件属性
- * @param {React.ReactNode} props.children - 子组件
- */
-export const PublicRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
 
-  // 加载中显示
-  if (isLoading) {
-    return (
-      <div 
-        style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh' 
-        }}
-      >
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
-
-  // 已登录用户重定向到首页
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
 
 /**
  * 管理员路由组件
@@ -159,6 +129,39 @@ export const PermissionRoute = ({ children, permissions, fallback }) => {
       {children}
     </ProtectedRoute>
   );
+};
+
+/**
+ * 公共路由组件 - 已登录用户不能访问（如登录、注册页面）
+ * @param {Object} props - 组件属性
+ * @param {React.ReactNode} props.children - 子组件
+ */
+export const PublicRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // 正在加载时显示加载状态
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
+        <Spin size="large" tip="加载中..." />
+      </div>
+    );
+  }
+
+  // 已登录用户重定向到首页
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />;
+  }
+
+  // 未登录用户可以访问
+  return children;
 };
 
 export default ProtectedRoute;

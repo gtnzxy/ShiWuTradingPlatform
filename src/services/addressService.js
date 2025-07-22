@@ -1,8 +1,8 @@
-import apiClient from './apiClient';
+import apiClient from './api';
 import { mockAddresses, simulateDelay, generateId } from '../utils/mockData';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// 禁用Mock数据，使用真实API
+const USE_MOCK_DATA = false;
 
 const addressService = {
   /**
@@ -19,7 +19,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.get('/api/users/addresses');
+      const response = await apiClient.get('/user/addresses');
       return response.data;
     } catch (error) {
       throw new Error(`获取地址列表失败: ${error.message}`);
@@ -42,7 +42,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.get(`/api/users/addresses/${id}`);
+      const response = await apiClient.get(`/user/addresses/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(`获取地址详情失败: ${error.message}`);
@@ -87,7 +87,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.post('/api/users/addresses', data);
+      const response = await apiClient.post('/user/addresses', data);
       return response.data;
     } catch (error) {
       throw new Error(`添加地址失败: ${error.message}`);
@@ -126,7 +126,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.put(`/api/users/addresses/${id}`, data);
+      const response = await apiClient.put(`/user/addresses/${id}`, data);
       return response.data;
     } catch (error) {
       throw new Error(`更新地址失败: ${error.message}`);
@@ -158,7 +158,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.delete(`/api/users/addresses/${id}`);
+      const response = await apiClient.delete(`/user/addresses/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(`删除地址失败: ${error.message}`);
@@ -190,7 +190,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.put(`/api/users/addresses/${id}/default`);
+      const response = await apiClient.put(`/user/addresses/${id}/default`);
       return response.data;
     } catch (error) {
       throw new Error(`设置默认地址失败: ${error.message}`);
@@ -212,7 +212,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.get('/api/users/addresses/default');
+      const response = await apiClient.get('/user/addresses/default');
       return response.data;
     } catch (error) {
       throw new Error(`获取默认地址失败: ${error.message}`);
@@ -255,7 +255,7 @@ const addressService = {
     }
     
     try {
-      const response = await apiClient.post('/api/users/addresses/validate', data);
+      const response = await apiClient.post('/user/addresses/validate', data);
       return response.data;
     } catch (error) {
       throw new Error(`地址验证失败: ${error.message}`);

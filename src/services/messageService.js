@@ -1,13 +1,13 @@
-import apiClient from './apiClient';
-import { 
-  mockConversations, 
+import apiClient from './api';
+import {
+  mockConversations,
   mockMessages,
-  simulateDelay, 
-  generateId 
+  simulateDelay,
+  generateId
 } from '../utils/mockData';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// 连接真实后端API
+const USE_MOCK_DATA = false;
 
 const messageService = {
   /**
@@ -27,12 +27,12 @@ const messageService = {
         pageSize: params.pageSize || 20
       };
     }
-    
+
     try {
-      const response = await apiClient.get('/messages/conversations', { params });
+      const response = await apiClient.get('/message/conversations', { params });
       return response.data;
     } catch (error) {
-      throw new Error(`获取会话列表失败: ${error.message}`);
+      throw new Error(`获取会话列表失败: ${error.response?.data?.message || error.message}`);
     }
   },
 
@@ -55,7 +55,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.get(`/messages/conversations/${conversationId}`, { params });
+      const response = await apiClient.get(`/message/history/${conversationId}`, { params });
       return response.data;
     } catch (error) {
       throw new Error(`获取消息历史失败: ${error.message}`);
@@ -103,7 +103,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.post('/messages', data);
+      const response = await apiClient.post('/message/send', data);
       return response.data;
     } catch (error) {
       throw new Error(`发送消息失败: ${error.message}`);
@@ -136,7 +136,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.put(`/messages/conversations/${conversationId}/read`);
+      const response = await apiClient.put(`/message/read/${conversationId}`);
       return response.data;
     } catch (error) {
       throw new Error(`标记已读失败: ${error.message}`);
@@ -227,7 +227,7 @@ const messageService = {
     }
     
     try {
-      const response = await apiClient.get('/messages/unread-count');
+      const response = await apiClient.get('/message/unread-count');
       return response.data;
     } catch (error) {
       throw new Error(`获取未读数量失败: ${error.message}`);

@@ -162,7 +162,16 @@ const MessageCenterPage = () => {
       return;
     }
 
-    fetchConversations();
+    const loadConversations = async () => {
+      try {
+        await fetchConversations();
+      } catch (error) {
+        console.error('加载会话列表失败:', error);
+        // 错误已在MessageContext中处理，这里不需要额外处理
+      }
+    };
+
+    loadConversations();
   }, [user, navigate, fetchConversations]);
 
   // 搜索关键词变化时过滤会话

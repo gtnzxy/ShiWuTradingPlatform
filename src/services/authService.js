@@ -2,8 +2,8 @@ import apiClient from './api';
 import { mockUsers, simulateDelay } from '../utils/mockData';
 import { STORAGE_KEYS } from '../utils/constants';
 
-// 开发环境使用Mock数据
-const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+// 使用真实后端API，不使用Mock数据
+const USE_MOCK_DATA = false;
 
 /**
  * 认证相关API服务
@@ -35,7 +35,14 @@ export const authService = {
       }
 
       if (!user || password !== '123456') {
-        throw new Error('用户名或密码错误');
+        console.log('❌ authService Mock登录失败:', {
+          user: user ? '用户存在' : '用户不存在',
+          passwordCorrect: password === '123456',
+          inputPassword: password
+        });
+        const errorMsg = '用户名或密码错误';
+        console.log('🔄 authService 准备抛出错误:', errorMsg);
+        throw new Error(errorMsg);
       }
 
       // 生成Mock token
@@ -51,38 +58,79 @@ export const authService = {
       };
     }
 
-    const response = await apiClient.post('/auth/login', credentials);
-    return response.data;
+    // 构造后端期望的登录请求格式
+    const loginRequest = {
+      username: credentials.loginType === 'username' ? credentials.username : credentials.phone,
+      password: credentials.password
+    };
+
+    const response = await apiClient.post('/user/login', loginRequest);
+
+    // 处理后端响应格式
+    if (response.success) {
+      return {
+        success: true,
+        data: {
+          token: response.data.token,
+          user: response.data,
+          expiresIn: 7200 // 2小时
+        }
+      };
+    } else {
+      // 根据错误代码提供更具体的错误消息
+      const errorCode = response.error?.code;
+      const errorMessage = response.error?.userTip || response.message;
+
+      let userFriendlyMessage = '登录失败';
+
+      if (errorCode) {
+        switch (errorCode) {
+          case 'USER_NOT_FOUND':
+            userFriendlyMessage = '用户不存在，请检查用户名或先注册账号';
+            break;
+          case 'WRONG_PASSWORD':
+            userFriendlyMessage = '密码错误，请重新输入';
+            break;
+          case 'ACCOUNT_BANNED':
+            userFriendlyMessage = '账户已被封禁，请联系客服';
+            break;
+          case 'PARAMETER_ERROR':
+            userFriendlyMessage = '请输入正确的用户名和密码';
+            break;
+          case 'SYSTEM_ERROR':
+            userFriendlyMessage = '系统错误，请稍后再试';
+            break;
+          default:
+            userFriendlyMessage = errorMessage || '登录失败，请检查用户名和密码';
+        }
+      } else {
+        userFriendlyMessage = errorMessage || '登录失败，请检查用户名和密码';
+      }
+
+      throw new Error(userFriendlyMessage);
+    }
   },
 
   /**
    * 用户注册
    * @param {Object} userData - 用户注册数据
    * @param {string} userData.username - 用户名
-   * @param {string} userData.phone - 手机号
-   * @param {string} userData.email - 邮箱（可选）
    * @param {string} userData.password - 密码
-   * @param {string} userData.verificationCode - 验证码
    * @returns {Promise<Object>} 注册结果
    */
   async register(userData) {
     if (USE_MOCK_DATA) {
       await simulateDelay(1000);
 
-      const { username, phone, email, password, verificationCode } = userData;
-
-      // 简单的Mock验证
-      if (verificationCode !== '123456') {
-        throw new Error('验证码错误');
-      }
+      const { username } = userData;
 
       // 检查用户名是否已存在
       const existingUser = Object.values(mockUsers).find(u =>
-        u.username === username || u.phone === phone
+        u.username === username
       );
 
       if (existingUser) {
-        throw new Error('用户名或手机号已存在');
+        throw new Error('用户名已存在');
       }
 
       // 创建新用户
@@ -91,8 +139,8 @@ export const authService = {
         id: newUserId,
         username,
         nickname: username,
-        phone,
-        email: email || '',
+        phone: '',
+        email: '',
         avatar: `https://via.placeholder.com/150/87CEEB/000000?text=${username.charAt(0).toUpperCase()}`,
         gender: '',
         birthday: '',
@@ -121,8 +169,62 @@ export const authService = {
       };
     }
 
-    const response = await apiClient.post('/users', userData);
-    return response.data;
+    // 构造后端期望的注册请求格式
+    const registerRequest = {
+      username: userData.username,
+      password: userData.password,
+      nickname: userData.nickname || userData.username, // 使用传入的昵称，如果没有则使用用户名
+      email: userData.email,
+      phone: userData.phone
+    };
+
+    const response = await apiClient.post('/user/register', registerRequest);
+
+    // 处理后端响应格式
+    if (response.success) {
+      return {
+        success: true,
+        data: {
+          user: response.data,
+          message: response.message || '注册成功'
+        }
+      };
+    } else {
+      // 根据错误代码提供更具体的错误消息
+      const errorCode = response.error?.code;
+      const errorMessage = response.error?.userTip || response.message;
+
+      let userFriendlyMessage = '注册失败';
+
+      if (errorCode) {
+        switch (errorCode) {
+          case 'USERNAME_EXISTS':
+            userFriendlyMessage = '用户名已存在，请选择其他用户名';
+            break;
+          case 'EMAIL_EXISTS':
+            userFriendlyMessage = '邮箱已被注册，请使用其他邮箱';
+            break;
+          case 'PHONE_EXISTS':
+            userFriendlyMessage = '手机号已被注册，请使用其他手机号';
+            break;
+          case 'WEAK_PASSWORD':
+            userFriendlyMessage = '密码强度不足，至少需要包含8个字符，包括字母和数字';
+            break;
+          case 'PARAMETER_ERROR':
+            userFriendlyMessage = '参数错误，请检查输入';
+            break;
+          case 'SYSTEM_ERROR':
+            userFriendlyMessage = '系统错误，请稍后再试';
+            break;
+          default:
+            userFriendlyMessage = errorMessage || '注册失败，请稍后重试';
+        }
+      } else {
+        userFriendlyMessage = errorMessage || '注册失败，请稍后重试';
+      }
+
+      throw new Error(userFriendlyMessage);
+    }
   },
 
   /**

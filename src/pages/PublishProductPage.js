@@ -141,11 +141,7 @@ const PublishProductPage = () => {
         description: values.description,
         price: values.price,
         categoryId: values.categoryId,
-        condition: values.condition,
-        location: values.location,
-        images: imageUrls,
-        // 添加分类名称以便显示
-        categoryName: categories.find(cat => cat.id === values.categoryId)?.name || '其他'
+        action: 'SUBMIT_REVIEW' // 后端要求的操作类型
       };
       
       console.log('发布商品数据:', productData);

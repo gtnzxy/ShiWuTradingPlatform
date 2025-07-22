@@ -19,7 +19,7 @@ import {
   EnvironmentOutlined
 } from '@ant-design/icons';
 import { categoryService } from '../../../services/categoryService';
-import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS, ITEM_CONDITIONS, ITEM_CONDITIONS_LABELS } from '../../../utils/constants';
+import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../../utils/constants';
 import './ProductFilter.css';
 
 const { Option } = Select;
@@ -35,14 +35,13 @@ const ProductFilter = ({
   const [searchKeyword, setSearchKeyword] = useState(initialFilters.keyword || '');
   const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
-    category_id: null,
-    min_price: null,
-    max_price: null,
-    condition: null,
+    categoryId: null,
+    minPrice: null,
+    maxPrice: null,
     status: 'available',
     location: null,
-    sort_by: 'created_at',
-    sort_order: 'desc',
+    sortBy: 'created_at',
+    sortDirection: 'desc',
     ...initialFilters
   });
   const [priceRange, setPriceRange] = useState([0, 1000]);
@@ -74,11 +73,7 @@ const ProductFilter = ({
     value: key.toLowerCase()
   }));
 
-  // 商品状况选项
-  const conditionOptions = Object.entries(ITEM_CONDITIONS).map(([key, value]) => ({
-    label: ITEM_CONDITIONS_LABELS[value],
-    value: key.toLowerCase()
-  }));
+  // 移除商品状况选项（后端不支持）
 
   useEffect(() => {
     loadCategories();
@@ -97,37 +92,74 @@ const ProductFilter = ({
   const loadCategories = async () => {
     setCategoriesLoading(true);
     try {
+      console.log('🏷️ ProductFilter开始加载分类数据...');
       const response = await categoryService.getCategories();
+      console.log('📋 ProductFilter分类API响应:', response);
+
       if (response.success) {
+        // categoryService已经处理了中文转换，直接使用
+        console.log('✅ ProductFilter获取到的分类数据:', response.data);
         setCategories(response.data || []);
       }
     } catch (error) {
-      console.error('加载分类失败:', error);
+      console.error('❌ ProductFilter加载分类失败:', error);
+      // 使用备用分类数据
+      const fallbackCategories = [
+        { id: 1, name: '电子产品', originalName: 'Electronics' },
+        { id: 2, name: '服装', originalName: 'Clothing' },
+        { id: 3, name: '图书文具', originalName: 'Books' },
+        { id: 4, name: '运动用品', originalName: 'Sports' },
+        { id: 5, name: '家居', originalName: 'Home' },
+        { id: 6, name: '其他', originalName: 'Other' }
+      ];
+      setCategories(fallbackCategories);
     } finally {
       setCategoriesLoading(false);
     }
   };
 
   const handleSearch = () => {
+    console.log('🔍 ProductFilter开始搜索...');
+    console.log('📝 搜索关键词:', searchKeyword.trim());
+    console.log('🔧 当前筛选条件:', filters);
+
+    // 创建搜索参数，确保keyword使用当前输入的值
     const searchParams = {
-      keyword: searchKeyword.trim(),
-      ...filters
+      ...filters,
+      keyword: searchKeyword.trim() // 使用当前输入的搜索关键词
     };
-    onSearch?.(searchParams);
+
+    console.log('📋 最终搜索参数:', searchParams);
+
+    if (onSearch) {
+      console.log('✅ 调用onSearch回调函数');
+      onSearch(searchParams);
+    } else {
+      console.warn('⚠️ onSearch回调函数未定义');
+    }
   };
 
   const handleFilterChange = (key, value) => {
+    console.log(`🔧 ProductFilter筛选变化: ${key} = ${value}`);
+
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    onFilterChange?.(newFilters);
+
+    console.log('📋 ProductFilter新的筛选条件:', newFilters);
+
+    if (onFilterChange) {
+      onFilterChange(newFilters);
+    } else {
+      console.warn('⚠️ onFilterChange回调函数未定义');
+    }
   };
 
   const handlePriceRangeChange = (range) => {
     setPriceRange(range);
     const newFilters = {
       ...filters,
-      min_price: range[0] > 0 ? range[0] : null,
-      max_price: range[1] < 10000 ? range[1] : null
+      minPrice: range[0] > 0 ? range[0] : null,
+      maxPrice: range[1] < 1000 ? range[1] : null
     };
     setFilters(newFilters);
     onFilterChange?.(newFilters);
@@ -138,11 +170,11 @@ const ProductFilter = ({
   };
 
   const handleSortChange = (value) => {
-    const [sort_by, sort_order] = value.split('_');
+    const [sortBy, sortDirection] = value.split('_');
     const newFilters = {
       ...filters,
-      sort_by: sort_by === 'created' ? 'created_at' : sort_by,
-      sort_order: sort_order
+      sortBy: sortBy === 'created' ? 'create_time' : sortBy,
+      sortDirection: sortDirection
     };
     setFilters(newFilters);
     onFilterChange?.(newFilters);
@@ -177,7 +209,7 @@ const ProductFilter = ({
   };
 
   return (
-    <Card className={`product-filter ${className}`} bodyStyle={{ padding: '16px' }}>
+    <Card className={`product-filter ${className}`} styles={{ body: { padding: '16px' } }}>
       {/* 搜索栏 */}
       <div className="product-filter__search">
         <Input.Search
@@ -233,8 +265,8 @@ const ProductFilter = ({
                 <label>商品分类</label>
                 <Select
                   placeholder="选择分类"
-                  value={filters.category_id}
-                  onChange={(value) => handleFilterChange('category_id', value)}
+                  value={filters.categoryId}
+                  onChange={(value) => handleFilterChange('categoryId', value)}
                   allowClear
                   loading={categoriesLoading}
                   style={{ width: '100%' }}
@@ -248,25 +280,7 @@ const ProductFilter = ({
               </div>
             </Col>
 
-            {/* 商品状况 */}
-            <Col xs={24} sm={12} md={6}>
-              <div className="product-filter__item">
-                <label>商品状况</label>
-                <Select
-                  placeholder="选择状况"
-                  value={filters.condition}
-                  onChange={(value) => handleFilterChange('condition', value)}
-                  allowClear
-                  style={{ width: '100%' }}
-                >
-                  {conditionOptions.map((option) => (
-                    <Option key={option.value} value={option.value}>
-                      {option.label}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </Col>
+            {/* 移除商品状况筛选（后端不支持） */}
 
             {/* 商品状态 */}
             <Col xs={24} sm={12} md={6}>

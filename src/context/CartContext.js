@@ -45,10 +45,12 @@ function cartReducer(state, action) {
       };
 
     case CART_ACTIONS.SET_CART_DATA:
+      // 处理cartService返回的格式 {success: true, data: {items: []}}
+      const cartData = action.payload.data || action.payload;
       return {
         ...state,
-        items: action.payload.items || [],
-        totalItems: action.payload.items ? action.payload.items.length : 0,
+        items: cartData.items || [],
+        totalItems: cartData.items ? cartData.items.length : 0,
         loading: false,
         error: null
       };
@@ -117,10 +119,15 @@ export function CartProvider({ children }) {
 
     try {
       dispatch({ type: CART_ACTIONS.SET_LOADING, payload: true });
+      console.log('🔄 CartContext: 开始加载购物车数据...');
+
       const cartData = await cartService.getCart();
+      console.log('📦 CartContext: 收到购物车数据:', cartData);
+
       dispatch({ type: CART_ACTIONS.SET_CART_DATA, payload: cartData });
+      console.log('✅ CartContext: 购物车数据已更新到状态');
     } catch (error) {
-      console.error('加载购物车失败:', error);
+      console.error('❌ CartContext: 加载购物车失败:', error);
       dispatch({ type: CART_ACTIONS.SET_ERROR, payload: error.message });
     }
   };
